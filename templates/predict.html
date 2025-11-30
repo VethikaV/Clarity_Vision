@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="./style.css">
+  <title>🔬 Cancer Prediction – ClarityVision</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f2f2f2;
+    }
+    nav {
+      background: #2c3e50;
+      padding: 1rem 2rem;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 1.5rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: #444;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      margin-top: 1.5rem;
+    }
+    button:hover {
+      background: #1f8132;
+    }
+
+    .result {
+      background: #e6ffed;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+<nav>
+  <div><strong>ClarityVision</strong></div>
+  <div>
+    <a href="/">OCR & Translation</a>
+    <a href="/predict">Cancer Prediction</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h2>🔬 Predict Cancer Type</h2>
+
+  <form id="predictForm">
+    <div class="grid">
+
+      <!-- 30 Features -->
+      <label>Radius Mean <input type="number" step="any" name="f1" required></label>
+      <label>Texture Mean <input type="number" step="any" name="f2" required></label>
+      <label>Perimeter Mean <input type="number" step="any" name="f3" required></label>
+      <label>Area Mean <input type="number" step="any" name="f4" required></label>
+      <label>Smoothness Mean <input type="number" step="any" name="f5" required></label>
+      <label>Compactness Mean <input type="number" step="any" name="f6" required></label>
+      <label>Concavity Mean <input type="number" step="any" name="f7" required></label>
+      <label>Concave Points Mean <input type="number" step="any" name="f8" required></label>
+      <label>Symmetry Mean <input type="number" step="any" name="f9" required></label>
+      <label>Fractal Dimension Mean <input type="number" step="any" name="f10" required></label>
+
+      <label>Radius SE <input type="number" step="any" name="f11" required></label>
+      <label>Texture SE <input type="number" step="any" name="f12" required></label>
+      <label>Perimeter SE <input type="number" step="any" name="f13" required></label>
+      <label>Area SE <input type="number" step="any" name="f14" required></label>
+      <label>Smoothness SE <input type="number" step="any" name="f15" required></label>
+      <label>Compactness SE <input type="number" step="any" name="f16" required></label>
+      <label>Concavity SE <input type="number" step="any" name="f17" required></label>
+      <label>Concave Points SE <input type="number" step="any" name="f18" required></label>
+      <label>Symmetry SE <input type="number" step="any" name="f19" required></label>
+      <label>Fractal Dimension SE <input type="number" step="any" name="f20" required></label>
+
+      <label>Radius Worst <input type="number" step="any" name="f21" required></label>
+      <label>Texture Worst <input type="number" step="any" name="f22" required></label>
+      <label>Perimeter Worst <input type="number" step="any" name="f23" required></label>
+      <label>Area Worst <input type="number" step="any" name="f24" required></label>
+      <label>Smoothness Worst <input type="number" step="any" name="f25" required></label>
+      <label>Compactness Worst <input type="number" step="any" name="f26" required></label>
+      <label>Concavity Worst <input type="number" step="any" name="f27" required></label>
+      <label>Concave Points Worst <input type="number" step="any" name="f28" required></label>
+      <label>Symmetry Worst <input type="number" step="any" name="f29" required></label>
+      <label>Fractal Dimension Worst <input type="number" step="any" name="f30" required></label>
+
+    </div>
+
+    <button type="submit">Predict</button>
+  </form>
+
+  <div id="predictionResult" class="result" style="display:none;"></div>
+</div>
+
+<script>
+  document.getElementById("predictForm").onsubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const features = [];
+
+    for (let value of formData.values()) {
+      features.push(Number(value));
+    }
+
+    const res = await fetch("/predict-cancer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ features })
+    });
+
+    const data = await res.json();
+    document.getElementById("predictionResult").style.display = "block";
+    document.getElementById("predictionResult").innerText =
+      "🎯 Prediction:\n" + JSON.stringify(data, null, 2);
+  };
+</script>
+
+</body>
+</html>
