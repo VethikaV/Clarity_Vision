@@ -1,0 +1,8 @@
+flask
+pillow
+scikit-learn
+joblib
+pytesseract
+pdf2image
+deep-translator
+numpy
