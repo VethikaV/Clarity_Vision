@@ -77,28 +77,320 @@ CANCER_KEYWORDS = ['cancer','malignant','benign','tumor','tumour','carcinoma','l
     'leukemia','leukaemia','metastasis','metastatic','biopsy','oncology','chemotherapy',
     'radiation','staging','grade','nodule','lesion','mass','diagnosis','prognosis',
     'pathology','cytology','histology','adenocarcinoma','sarcoma','melanoma','neoplasm',
-    'malignancy','remission','recurrence']
+    'malignancy','remission','recurrence','invasive','infiltrating','ductal','lobular',
+    'squamous','basal cell','transitional cell','anaplastic','poorly differentiated',
+    'well differentiated','moderately differentiated','lymph node','margin','resection',
+    'excision','ablation','immunotherapy','targeted therapy','hormone receptor','her2',
+    'brca','psa','cea','ca125','ca19-9','afp','pdl1','ki67','mitosis','necrosis']
+
 MALIGNANT_KWS = {'malignant','cancer','carcinoma','lymphoma','leukemia','leukaemia',
-    'metastasis','metastatic','adenocarcinoma','sarcoma','melanoma','neoplasm','malignancy'}
-BENIGN_KWS = {'benign','normal','negative','no malignancy','no cancer','clear','unremarkable'}
+    'metastasis','metastatic','adenocarcinoma','sarcoma','melanoma','neoplasm','malignancy',
+    'invasive','infiltrating','poorly differentiated','anaplastic'}
+BENIGN_KWS = {'benign','normal','negative','no malignancy','no cancer','clear','unremarkable',
+    'reactive','inflammatory','non-neoplastic'}
+NEGATION_PATTERNS = [
+    r'no\s+(?:evidence\s+of\s+)?(?:malignancy|cancer|tumor|carcinoma)',
+    r'negative\s+for\s+(?:malignancy|cancer|carcinoma)',
+    r'not\s+(?:malignant|cancerous)',
+    r'rule\s+out\s+(?:malignancy|cancer)',
+    r'benign',r'non.malignant',r'non.neoplastic'
+]
+
+# ── Cancer Type Detection Map ──────────────────────────────────────────────────
+CANCER_TYPE_PATTERNS = {
+    'Breast Cancer': {
+        'patterns': [r'breast\s+(?:cancer|carcinoma|tumor|mass|nodule|lesion)',
+                     r'mammogram|mammography',r'ductal\s+carcinoma',r'lobular\s+carcinoma',
+                     r'invasive\s+ductal',r'invasive\s+lobular',r'her2',r'brca[12]?',
+                     r'estrogen\s+receptor',r'progesterone\s+receptor',r'\ber\+|\bpr\+|\bher2\+',
+                     r'lumpectomy|mastectomy'],
+        'icd10': 'C50', 'color': 'danger',
+        'description': 'Malignant neoplasm of breast tissue.'
+    },
+    'Lung Cancer': {
+        'patterns': [r'lung\s+(?:cancer|carcinoma|tumor|mass|nodule)',
+                     r'pulmonary\s+(?:malignancy|neoplasm|carcinoma)',
+                     r'non.small\s+cell',r'small\s+cell\s+lung',r'nsclc',r'sclc',
+                     r'bronchogenic\s+carcinoma',r'squamous\s+cell.*lung',
+                     r'bronchoalveolar',r'pleural\s+effusion.*malign',
+                     r'egfr\s+mutation',r'alk\s+rearrangement'],
+        'icd10': 'C34', 'color': 'danger',
+        'description': 'Malignant neoplasm of bronchus and lung.'
+    },
+    'Colorectal Cancer': {
+        'patterns': [r'colon\s+(?:cancer|carcinoma|tumor)',r'rectal\s+(?:cancer|carcinoma)',
+                     r'colorectal',r'colonoscopy.*(?:adenoma|polyp|malign)',
+                     r'sigmoid\s+carcinoma',r'cecal\s+(?:mass|carcinoma)',
+                     r'bowel\s+(?:cancer|obstruction)',r'\bcea\b.*(?:elevated|raised|high)',
+                     r'microsatellite\s+instability',r'msi.h',r'kras\s+mutation'],
+        'icd10': 'C18-C20', 'color': 'danger',
+        'description': 'Malignant neoplasm of colon, rectum, and rectosigmoid junction.'
+    },
+    'Prostate Cancer': {
+        'patterns': [r'prostate\s+(?:cancer|carcinoma|adenocarcinoma)',
+                     r'prostatic\s+(?:malignancy|neoplasm)',
+                     r'\bpsa\b.*(?:elevated|raised|ng/ml)',r'gleason\s+score',
+                     r'radical\s+prostatectomy',r'brachytherapy.*prostate',
+                     r'androgen\s+deprivation'],
+        'icd10': 'C61', 'color': 'danger',
+        'description': 'Malignant neoplasm of prostate gland.'
+    },
+    'Liver Cancer': {
+        'patterns': [r'hepatocellular\s+carcinoma',r'hcc\b',r'liver\s+(?:cancer|carcinoma|tumor|mass)',
+                     r'hepatic\s+(?:malignancy|neoplasm|carcinoma)',
+                     r'\bafp\b.*(?:elevated|raised)',r'cirrhosis.*(?:malign|hcc)',
+                     r'cholangiocarcinoma',r'bile\s+duct\s+carcinoma'],
+        'icd10': 'C22', 'color': 'danger',
+        'description': 'Malignant neoplasm of liver and intrahepatic bile ducts.'
+    },
+    'Cervical Cancer': {
+        'patterns': [r'cervical\s+(?:cancer|carcinoma|dysplasia)',
+                     r'cervix\s+(?:malignancy|neoplasm)',r'\bhpv\b',r'pap\s+smear.*(?:abnormal|positive)',
+                     r'cin\s*[123]',r'colposcopy.*(?:malign|carcinoma)',
+                     r'squamous\s+cell.*cervix'],
+        'icd10': 'C53', 'color': 'danger',
+        'description': 'Malignant neoplasm of cervix uteri.'
+    },
+    'Ovarian Cancer': {
+        'patterns': [r'ovarian\s+(?:cancer|carcinoma|tumor|mass)',
+                     r'ovary\s+(?:malignancy|neoplasm)',
+                     r'\bca.?125\b.*(?:elevated|raised)',
+                     r'epithelial\s+ovarian',r'serous\s+carcinoma.*ovari',
+                     r'fallopian\s+tube.*carcinoma'],
+        'icd10': 'C56', 'color': 'danger',
+        'description': 'Malignant neoplasm of ovary.'
+    },
+    'Stomach / Gastric Cancer': {
+        'patterns': [r'gastric\s+(?:cancer|carcinoma|adenocarcinoma)',
+                     r'stomach\s+(?:cancer|carcinoma|tumor)',
+                     r'gastroesophageal.*carcinoma',r'linitis\s+plastica',
+                     r'signet\s+ring\s+cell',r'h\s*pylori.*(?:malign|carcinoma)'],
+        'icd10': 'C16', 'color': 'danger',
+        'description': 'Malignant neoplasm of stomach.'
+    },
+    'Pancreatic Cancer': {
+        'patterns': [r'pancreatic\s+(?:cancer|carcinoma|adenocarcinoma)',
+                     r'pancreas\s+(?:malignancy|neoplasm|tumor)',
+                     r'\bca.?19.?9\b.*(?:elevated|raised)',
+                     r'whipple\s+(?:procedure|surgery)',r'pancreaticoduodenectomy'],
+        'icd10': 'C25', 'color': 'danger',
+        'description': 'Malignant neoplasm of pancreas.'
+    },
+    'Thyroid Cancer': {
+        'patterns': [r'thyroid\s+(?:cancer|carcinoma|malignancy)',
+                     r'papillary\s+thyroid',r'follicular\s+thyroid',
+                     r'medullary\s+thyroid',r'anaplastic\s+thyroid',
+                     r'thyroidectomy.*(?:malign|carcinoma)',r'braf\s+mutation.*thyroid'],
+        'icd10': 'C73', 'color': 'danger',
+        'description': 'Malignant neoplasm of thyroid gland.'
+    },
+    'Bladder Cancer': {
+        'patterns': [r'bladder\s+(?:cancer|carcinoma|tumor)',
+                     r'transitional\s+cell\s+carcinoma',r'urothelial\s+carcinoma',
+                     r'cystoscopy.*(?:malign|carcinoma|tumor)',
+                     r'radical\s+cystectomy'],
+        'icd10': 'C67', 'color': 'danger',
+        'description': 'Malignant neoplasm of bladder.'
+    },
+    'Kidney / Renal Cancer': {
+        'patterns': [r'renal\s+cell\s+carcinoma',r'rcc\b',
+                     r'kidney\s+(?:cancer|carcinoma|tumor|mass)',
+                     r'nephrectomy.*(?:malign|carcinoma)',r'clear\s+cell\s+carcinoma.*renal',
+                     r'wilms\s+tumor'],
+        'icd10': 'C64', 'color': 'danger',
+        'description': 'Malignant neoplasm of kidney.'
+    },
+    'Lymphoma': {
+        'patterns': [r'lymphoma\b',r'hodgkin',r'non.hodgkin',r'diffuse\s+large\s+b.cell',
+                     r'dlbcl\b',r'follicular\s+lymphoma',r'burkitt',r'mantle\s+cell',
+                     r'reed.sternberg',r'lymph\s+node.*biopsy.*malign'],
+        'icd10': 'C81-C86', 'color': 'danger',
+        'description': 'Malignant lymphoma involving lymphoid tissue.'
+    },
+    'Leukemia': {
+        'patterns': [r'leuk[ae]mia\b',r'\ball\b.*blast',r'\baml\b.*blast',r'\bcll\b',r'\bcml\b',
+                     r'acute\s+lymphoblastic',r'acute\s+myeloid',
+                     r'chronic\s+lymphocytic',r'chronic\s+myeloid',
+                     r'blast\s+crisis',r'bone\s+marrow.*(?:malign|blast)',
+                     r'philadelphia\s+chromosome'],
+        'icd10': 'C91-C95', 'color': 'danger',
+        'description': 'Malignant neoplasm of blood-forming and related tissue.'
+    },
+    'Skin Cancer / Melanoma': {
+        'patterns': [r'melanoma\b',r'skin\s+cancer',r'basal\s+cell\s+carcinoma',
+                     r'squamous\s+cell.*skin',r'merkel\s+cell',
+                     r'breslow\s+thickness',r'sentinel\s+node.*skin',
+                     r'dermatoscopy.*malign'],
+        'icd10': 'C43-C44', 'color': 'danger',
+        'description': 'Malignant neoplasm of skin.'
+    },
+    'Brain / CNS Cancer': {
+        'patterns': [r'glioblastoma\b',r'gbm\b',r'glioma\b',r'astrocytoma',r'meningioma.*malign',
+                     r'brain\s+(?:tumor|tumour|cancer|malignancy)',
+                     r'cns\s+(?:malignancy|tumor|lymphoma)',
+                     r'idh\s+mutation',r'mgmt\s+promoter',r'temozolomide'],
+        'icd10': 'C71', 'color': 'danger',
+        'description': 'Malignant neoplasm of brain and central nervous system.'
+    },
+    'Oesophageal Cancer': {
+        'patterns': [r'esophageal\s+(?:cancer|carcinoma)',r'oesophageal\s+carcinoma',
+                     r'barrett.s.*carcinoma',r'esophagectomy',
+                     r'squamous\s+cell.*esophag'],
+        'icd10': 'C15', 'color': 'danger',
+        'description': 'Malignant neoplasm of oesophagus.'
+    },
+    'Uterine / Endometrial Cancer': {
+        'patterns': [r'endometrial\s+(?:cancer|carcinoma)',r'uterine\s+(?:cancer|carcinoma|sarcoma)',
+                     r'endometrium.*malign',r'hysterectomy.*(?:malign|carcinoma)'],
+        'icd10': 'C54', 'color': 'danger',
+        'description': 'Malignant neoplasm of corpus uteri.'
+    },
+    'Bone Cancer / Sarcoma': {
+        'patterns': [r'osteosarcoma',r'ewing\s+sarcoma',r'chondrosarcoma',
+                     r'bone\s+(?:cancer|tumor|sarcoma)',r'soft\s+tissue\s+sarcoma',
+                     r'rhabdomyosarcoma',r'liposarcoma'],
+        'icd10': 'C40-C49', 'color': 'danger',
+        'description': 'Malignant neoplasm of bone and soft tissue.'
+    },
+    'Head & Neck Cancer': {
+        'patterns': [r'head\s+and\s+neck\s+(?:cancer|carcinoma)',
+                     r'oral\s+(?:cancer|carcinoma)',r'laryngeal\s+carcinoma',
+                     r'pharyngeal\s+carcinoma',r'squamous\s+cell.*(?:oral|larynx|pharynx|throat)',
+                     r'nasopharyngeal',r'salivary\s+gland.*malign'],
+        'icd10': 'C00-C14', 'color': 'danger',
+        'description': 'Malignant neoplasm of head and neck region.'
+    },
+    'Multiple Myeloma': {
+        'patterns': [r'multiple\s+myeloma',r'plasma\s+cell\s+(?:myeloma|dyscrasia)',
+                     r'monoclonal\s+gammopathy',r'\bmgus\b',
+                     r'bence\s+jones',r'serum\s+protein\s+electrophoresis.*spike'],
+        'icd10': 'C90', 'color': 'danger',
+        'description': 'Multiple myeloma and malignant plasma cell neoplasms.'
+    },
+}
+
+# Lab markers that boost malignancy confidence
+LAB_MALIGNANCY_MARKERS = {
+    'elevated_ca125': r'ca.?125[:\s]+(\d+\.?\d*)(?:\s*u/ml)?',
+    'elevated_psa': r'psa[:\s]+(\d+\.?\d*)(?:\s*ng/ml)?',
+    'elevated_cea': r'cea[:\s]+(\d+\.?\d*)(?:\s*ng/ml)?',
+    'elevated_afp': r'afp[:\s]+(\d+\.?\d*)(?:\s*ng/ml)?',
+    'elevated_ca19_9': r'ca.?19.?9[:\s]+(\d+\.?\d*)(?:\s*u/ml)?',
+    'elevated_ldh': r'ldh[:\s]+(\d+\.?\d*)(?:\s*u/l)?',
+    'elevated_ki67': r'ki.?67[:\s]+(\d+%)',
+}
+LAB_THRESHOLDS = {
+    'elevated_ca125': 35, 'elevated_psa': 4.0, 'elevated_cea': 5.0,
+    'elevated_afp': 400, 'elevated_ca19_9': 37, 'elevated_ldh': 600,
+}
+
+# Staging keywords
+STAGE_PATTERNS = {
+    'Stage I':   [r'stage\s+i\b',r'stage\s+1\b',r'\bpT1\b',r'\bT1\b'],
+    'Stage II':  [r'stage\s+ii\b',r'stage\s+2\b',r'\bpT2\b',r'\bT2\b'],
+    'Stage III': [r'stage\s+iii\b',r'stage\s+3\b',r'\bpT3\b',r'\bT3\b'],
+    'Stage IV':  [r'stage\s+iv\b',r'stage\s+4\b',r'\bpT4\b',r'\bT4\b',r'metastatic',r'metastasis'],
+}
+
+def detect_negation(text, position, window=80):
+    """Check if a match is negated by nearby text."""
+    # Look at text before and slightly after the keyword
+    before = text[max(0, position-window):position].lower()
+    around = text[max(0, position-window):min(len(text), position+60)].lower()
+    for pat in NEGATION_PATTERNS:
+        if re.search(pat, around):
+            return True
+    return False
+
+def detect_cancer_types_from_text(text):
+    """Advanced cancer type detection from document text."""
+    tl = text.lower()
+    detected = []
+    for cancer_name, info in CANCER_TYPE_PATTERNS.items():
+        score = 0
+        matched_patterns = []
+        for pat in info['patterns']:
+            for m in re.finditer(pat, tl):
+                if not detect_negation(tl, m.start(), window=70):
+                    score += 1
+                    snippet = text[max(0, m.start()-35):min(len(text), m.end()+55)].strip().replace('\n',' ')
+                    matched_patterns.append({'pattern': m.group(0), 'context': f'...{snippet}...'})
+                    break  # one match per pattern is enough for scoring
+        if score >= 1:
+            detected.append({
+                'name': cancer_name,
+                'icd10': info['icd10'],
+                'score': score,
+                'confidence': min(100, score * 28 + 16),
+                'description': info['description'],
+                'evidence': matched_patterns[:3],
+            })
+    detected.sort(key=lambda x: -x['score'])
+    return detected[:5]  # top 5
+
+def extract_staging_info(text):
+    """Extract staging information from text."""
+    tl = text.lower()
+    for stage, pats in STAGE_PATTERNS.items():
+        for pat in pats:
+            if re.search(pat, tl):
+                return stage
+    return None
+
+def extract_elevated_markers(text):
+    """Extract and evaluate lab markers for malignancy."""
+    tl = text.lower()
+    elevated = []
+    for marker, pat in LAB_MALIGNANCY_MARKERS.items():
+        m = re.search(pat, tl)
+        if m:
+            try:
+                val = float(m.group(1))
+                threshold = LAB_THRESHOLDS.get(marker)
+                if threshold and val > threshold:
+                    elevated.append({'marker': marker.replace('elevated_','').upper().replace('_','-'),
+                                     'value': val, 'threshold': threshold})
+            except:
+                pass
+    return elevated
 
 def extract_cancer_entities(text):
     found, tl = [], text.lower()
     for kw in CANCER_KEYWORDS:
         if kw in tl:
             idx = tl.find(kw)
-            ctx = text[max(0,idx-40):min(len(text),idx+len(kw)+40)].strip().replace('\n',' ')
-            found.append({'keyword':kw,'context':f'...{ctx}...'})
+            if not detect_negation(tl, idx, window=60):
+                ctx = text[max(0,idx-40):min(len(text),idx+len(kw)+40)].strip().replace('\n',' ')
+                found.append({'keyword':kw,'context':f'...{ctx}...'})
     return found
 
-def assess_cancer_risk(entities):
-    found = {e['keyword'] for e in entities}
-    mal   = sum(1 for k in found if k in MALIGNANT_KWS)
-    ben   = sum(1 for k in found if k in BENIGN_KWS)
-    if not entities:     return None,None,None
-    if mal > 0:          return 'HIGH','danger',f'{mal} malignancy indicator(s) found. Specialist review recommended.'
-    if ben > 0:          return 'LOW','safe','Benign findings indicated. Routine follow-up advised.'
-    return 'MODERATE','warn',f'{len(entities)} cancer-related term(s) present. Further evaluation recommended.'
+def assess_cancer_risk(entities, text=''):
+    """Enhanced risk assessment using entity + NLP signals."""
+    tl = text.lower() if text else ''
+    found_kws = {e['keyword'] for e in entities}
+    mal = sum(1 for k in found_kws if k in MALIGNANT_KWS)
+    ben = sum(1 for k in found_kws if k in BENIGN_KWS)
+    
+    # Check for clear negation of malignancy in the whole doc
+    clear_negative = any(re.search(pat, tl) for pat in NEGATION_PATTERNS[:4])
+    elevated_markers = extract_elevated_markers(text) if text else []
+    staging = extract_staging_info(text) if text else None
+
+    if not entities:
+        return None, None, None, None, []
+    
+    bonus_confidence = len(elevated_markers) * 8
+    
+    if clear_negative and mal == 0:
+        return 'LOW', 'safe', 'No malignancy detected. Document indicates benign or negative findings. Routine follow-up advised.', staging, elevated_markers
+    if mal > 0:
+        stage_note = f' Staging: {staging}.' if staging else ''
+        marker_note = f' {len(elevated_markers)} elevated tumour marker(s) detected.' if elevated_markers else ''
+        conf_score = min(98, 55 + mal*12 + bonus_confidence)
+        return 'HIGH', 'danger', f'{mal} malignancy indicator(s) found.{stage_note}{marker_note} Urgent specialist review recommended. Estimated confidence: {conf_score}%', staging, elevated_markers
+    if ben > 0:
+        return 'LOW', 'safe', 'Benign findings indicated. Routine follow-up and monitoring advised.', staging, elevated_markers
+    return 'MODERATE', 'warn', f'{len(entities)} cancer-related term(s) present. Further clinical evaluation recommended.', staging, elevated_markers
 
 # ── Clinical info: treatment, suggestion, confirm test ──────────────
 CANCER_CLINICAL = {
@@ -352,16 +644,38 @@ def cancer_predict_document():
         doc_text = clean_ocr_text(extract_text_from_file(fb, file.filename.lower()))
         if not doc_text: return jsonify({'error':'No readable text found.'}),400
 
-        # Cancer
+        # Cancer — enhanced detection
         cent = extract_cancer_entities(doc_text)
-        rl, rc, sm = assess_cancer_risk(cent)
+        rl, rc, sm, staging, elevated_markers = assess_cancer_risk(cent, doc_text)
+        detected_types = detect_cancer_types_from_text(doc_text)
+
         if rl is None:
-            cancer_result = {'status':'undetermined','message':'No cancer-related clinical data found in this document. Cancer prediction cannot be made.','entities':[]}
+            cancer_result = {'status':'undetermined','message':'No cancer-related clinical data found in this document. Cancer prediction cannot be made.','entities':[],'detected_types':[],'staging':None,'elevated_markers':[]}
         else:
-            mal_kw = [e['keyword'] for e in cent if e['keyword'] in MALIGNANT_KWS]
-            doc_cname = mal_kw[0].capitalize() if mal_kw else 'General'
-            c_clinical = get_cancer_clinical(doc_cname) if doc_cname in CANCER_CLINICAL else DEFAULT_CANCER_CLINICAL
-            cancer_result = {'status':'determined','risk_level':rl,'risk_color':rc,'summary':sm,'entities':cent,'entity_count':len(cent),'treatment':c_clinical['treatment'],'suggestion':c_clinical['suggestion'],'confirm_test':c_clinical['confirm_test']}
+            # Pick clinical info — try KB match on detected type, else use document keyword
+            c_clinical = DEFAULT_CANCER_CLINICAL
+            if detected_types:
+                primary_type = detected_types[0]['name']
+            else:
+                mal_kw = [e['keyword'] for e in cent if e['keyword'] in MALIGNANT_KWS]
+                primary_type = mal_kw[0].capitalize() if mal_kw else 'General'
+            if primary_type in CANCER_CLINICAL:
+                c_clinical = get_cancer_clinical(primary_type)
+            cancer_result = {
+                'status':        'determined',
+                'risk_level':    rl,
+                'risk_color':    rc,
+                'summary':       sm,
+                'entities':      cent,
+                'entity_count':  len(cent),
+                'detected_types': detected_types,
+                'primary_type':  detected_types[0] if detected_types else None,
+                'staging':       staging,
+                'elevated_markers': elevated_markers,
+                'treatment':     c_clinical['treatment'],
+                'suggestion':    c_clinical['suggestion'],
+                'confirm_test':  c_clinical['confirm_test'],
+            }
 
         # Autoimmune
         fv, found, missing = extract_autoimmune_features(doc_text)

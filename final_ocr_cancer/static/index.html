@@ -924,6 +924,87 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
   flex: 1;
 }
 
+/* Cancer type cards */
+.cancer-types-block {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.cancer-types-head {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cancer-type-primary {
+  background: rgba(224,90,114,.07);
+  border: 1px solid rgba(224,90,114,.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.cancer-type-primary::before {
+  content: 'PRIMARY MATCH';
+  position: absolute;
+  top: 8px; right: 12px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--danger);
+  opacity: 0.7;
+}
+.cancer-type-other {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+.cancer-type-other:last-child { margin-bottom: 0; }
+.ct-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.ct-icd { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 5px; letter-spacing: 0.5px; }
+.ct-desc { font-size: 12px; color: var(--text2); font-weight: 300; margin-bottom: 8px; line-height: 1.5; }
+.ct-conf-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ct-track { flex: 1; height: 3px; background: var(--surf3); border-radius: 2px; overflow: hidden; }
+.ct-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--danger), #f08090); transition: width 1s cubic-bezier(.4,0,.2,1); width: 0; }
+.ct-fill.warn { background: linear-gradient(90deg, var(--warn), #f0c890); }
+.ct-pct { font-family: var(--mono); font-size: 10px; color: var(--text2); min-width: 36px; text-align: right; }
+
+/* Staging & markers badges */
+.meta-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.meta-badge.stage { background: rgba(77,184,232,.1); border: 1px solid rgba(77,184,232,.25); color: var(--accent); }
+.meta-badge.marker-elevated { background: rgba(224,90,114,.09); border: 1px solid rgba(224,90,114,.25); color: var(--danger); }
+.meta-badge.marker-normal { background: rgba(45,212,160,.07); border: 1px solid rgba(45,212,160,.2); color: var(--safe); }
+
 /* Section block label */
 .section-block-label {
   font-family: var(--mono);
@@ -1494,6 +1575,55 @@ async function runCancerDocument() {
       const entHTML = cancer.entities.length
         ? cancer.entities.map(e => { const ctx = e.context.replace(new RegExp(e.keyword,'gi'), m => `<span class="entity-kw-hi">${m}</span>`); return `<div class="entity-item"><div class="entity-kw">${e.keyword}</div><div class="entity-ctx">${ctx}</div></div>`; }).join('')
         : '<div style="font-size:12px;color:var(--dim);font-weight:300">No oncological keywords identified.</div>';
+
+      // Staging & markers
+      let metaHTML = '';
+      if (cancer.staging) {
+        metaHTML += `<div class="meta-badge stage">📋 ${escHtml(cancer.staging)}</div>`;
+      }
+      (cancer.elevated_markers||[]).forEach(m => {
+        metaHTML += `<div class="meta-badge marker-elevated">🔺 ${escHtml(m.marker)}: ${m.value} (ref &lt;${m.threshold})</div>`;
+      });
+      const metaRowHTML = metaHTML ? `<div class="meta-row">${metaHTML}</div>` : '';
+
+      // Cancer type cards
+      let typesHTML = '';
+      if (cancer.detected_types && cancer.detected_types.length > 0) {
+        const primary = cancer.detected_types[0];
+        const others  = cancer.detected_types.slice(1);
+        const primaryEv = (primary.evidence||[]).map(ev =>
+          `<div style="margin-top:5px;font-size:11px;color:var(--dim);line-height:1.5">
+            <span style="color:var(--warn);font-family:var(--mono);font-size:10px;font-weight:500">${escHtml(ev.pattern)}</span>
+            &nbsp;${escHtml(ev.context)}
+          </div>`).join('');
+        typesHTML = `
+          <div class="cancer-types-block">
+            <div class="cancer-types-head">
+              <span>Identified Cancer Types — ${cancer.detected_types.length} detected</span>
+            </div>
+            <div class="cancer-type-primary">
+              <div class="ct-name">${escHtml(primary.name)}</div>
+              <div class="ct-icd">ICD-10: ${escHtml(primary.icd10)}</div>
+              <div class="ct-desc">${escHtml(primary.description)}</div>
+              <div class="ct-conf-bar">
+                <div class="ct-track"><div class="ct-fill" data-w="${primary.confidence}%" style="width:0%"></div></div>
+                <div class="ct-pct">${primary.confidence}%</div>
+              </div>
+              ${primaryEv}
+            </div>
+            ${others.map(t => `
+              <div class="cancer-type-other">
+                <div class="ct-name">${escHtml(t.name)}</div>
+                <div class="ct-icd">ICD-10: ${escHtml(t.icd10)}</div>
+                <div class="ct-desc">${escHtml(t.description)}</div>
+                <div class="ct-conf-bar">
+                  <div class="ct-track"><div class="ct-fill warn" data-w="${t.confidence}%" style="width:0%"></div></div>
+                  <div class="ct-pct">${t.confidence}%</div>
+                </div>
+              </div>`).join('')}
+          </div>`;
+      }
+
       cancerHTML = `
         <div class="section-block-label">Cancer Assessment</div>
         <div class="result-verdict ${c}">
@@ -1501,11 +1631,13 @@ async function runCancerDocument() {
             <div class="vrd-icon ${c}" style="font-size:18px;font-family:var(--mono);font-weight:500">${icons[c]}</div>
             <div>
               <div class="vrd-status ${c}">${labels[c]}</div>
-              <div class="vrd-name">Risk Level: ${cancer.risk_level}</div>
+              <div class="vrd-name">Risk Level: ${cancer.risk_level}${cancer.primary_type ? ' · ' + escHtml(cancer.primary_type.name) : ''}</div>
               <div class="vrd-conf" style="margin-top:6px;font-size:12px;color:var(--text2);font-weight:300">${escHtml(cancer.summary)}</div>
             </div>
           </div>
         </div>
+        ${metaRowHTML}
+        ${typesHTML}
         <div class="entity-block">
           <div class="entity-head">Oncological Keywords — ${cancer.entity_count} found</div>
           ${entHTML}
@@ -1579,7 +1711,10 @@ async function runCancerDocument() {
       </div>` : ''}`;
 
     el.classList.add('show');
-    setTimeout(() => { el.querySelectorAll('.prob-fill').forEach(b => b.style.width = b.dataset.w); }, 80);
+    setTimeout(() => {
+      el.querySelectorAll('.prob-fill').forEach(b => b.style.width = b.dataset.w);
+      el.querySelectorAll('.ct-fill').forEach(b => b.style.width = b.dataset.w);
+    }, 80);
   } catch(e) { setErr('cd-err', e.message); document.getElementById('cd-placeholder').style.display = ''; }
   finally { setBtnLoading('cd-btn','cd-spin',false); setLoading('cd',false); }
 }
