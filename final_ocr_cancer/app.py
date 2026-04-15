@@ -566,40 +566,83 @@ AI_PARAM_PATTERNS = {
 
 AI_MIN_KEYS = {'WBC_Count','Hemoglobin','PLT_Count','ESR','CRP','ANA'}
 
+def convert_positive_to_value(text):
+    text = text.lower()
+    if 'strong positive' in text:
+        return 3
+    elif 'positive' in text:
+        return 2
+    elif 'equivocal' in text:
+        return 1
+    elif 'negative' in text:
+        return 0
+    return None
+
+
 def extract_autoimmune_features(text):
     tl = text.lower()
-    fv = np.zeros(77)
-    found, missing = {}, []
-    for i, feat in enumerate(AI_FEATURES):
-        patterns = AI_PARAM_PATTERNS.get(feat, [])
-        if feat == 'Gender_Male':
-            for pat in patterns:
-                m = re.search(pat, tl)
-                if m:
-                    vs = m.group(1) if m.lastindex else m.group(0)
-                    val = 1.0 if 'male' in vs and 'female' not in vs else 0.0
-                    fv[i] = val; found[feat] = 'Male' if val else 'Female'; break
-        elif feat in SYMPTOM_FEATURES:
-            for pat in patterns:
-                if re.search(pat, tl):
-                    fv[i] = 1.0; found[feat] = 'Present'; break
-        elif feat in ANTIBODY_BINARY:
-            for pat in patterns:
-                m = re.search(pat, tl)
-                if m:
-                    snip = tl[m.start():min(len(tl), m.end()+30)]
-                    pos  = bool(re.search(r'positive|detected|present|\d+', snip))
-                    neg  = bool(re.search(r'negative|not detected|absent', snip))
-                    if pos and not neg: fv[i] = 1.0; found[feat] = 'Positive'
-                    break
-        else:
-            for pat in patterns:
-                m = re.search(pat, tl)
-                if m:
-                    try: val = float(m.group(1)); fv[i] = val; found[feat] = val; break
-                    except: pass
-        if feat not in found: missing.append(feat)
-    return fv, found, missing
+    found = {}
+
+    # ANA
+    ana_match = re.search(r'ana.*?(\d+\.?\d*)', tl)
+    if ana_match:
+        found['ANA'] = float(ana_match.group(1))
+    elif 'ana' in tl:
+        found['ANA'] = convert_positive_to_value(tl)
+
+    # Anti-dsDNA
+    dsdna_match = re.search(r'anti.ds.?dna.*?(\d+\.?\d*)', tl)
+    if dsdna_match:
+        found['Anti-dsDNA'] = float(dsdna_match.group(1))
+    elif 'anti-dsdna' in tl:
+        found['Anti-dsDNA'] = convert_positive_to_value(tl)
+
+    # Anti-Sm
+    if 'anti-sm' in tl:
+        found['Anti-Sm'] = convert_positive_to_value(tl)
+
+    # Complement C4d
+    if 'c4d' in tl:
+        found['C4d'] = convert_positive_to_value(tl)
+
+    print("Extracted Autoimmune Features:", found)
+    return found
+def detect_autoimmune_rule_based(found):
+    """
+    Rule-based detection for autoimmune diseases
+    """
+
+    # --- Systemic Lupus Erythematosus (SLE) ---
+    if (
+        found.get('ANA', 0) >= 2 and
+        found.get('Anti-dsDNA', 0) >= 2
+    ):
+        return {
+            "disease": "Systemic Lupus Erythematosus",
+            "confidence": 95,
+            "reason": "ANA positive + Anti-dsDNA positive"
+        }
+
+    # --- Rheumatoid Arthritis (basic rule) ---
+    if (
+        found.get('Rheumatoid factor', 0) >= 2 or
+        found.get('ACPA', 0) >= 2
+    ):
+        return {
+            "disease": "Rheumatoid arthritis",
+            "confidence": 85,
+            "reason": "RF or Anti-CCP positive"
+        }
+
+    # --- Thyroid (Hashimoto) ---
+    if found.get('Anti-TPO', 0) >= 2:
+        return {
+            "disease": "Hashimoto's thyroiditis",
+            "confidence": 80,
+            "reason": "Anti-TPO positive"
+        }
+
+    return None
 
 def can_predict_autoimmune(found):
     return len(AI_MIN_KEYS & set(found.keys())) >= 2
@@ -635,63 +678,121 @@ def cancer_predict_image():
         return jsonify({'prediction':int(pred),'class_name':cname,'is_malignant':bool(pred!=0),'confidence':float(max(proba)*100),'probabilities':[{'class':class_names[i],'probability':float(proba[i]*100),'is_malignant':i!=0} for i in range(len(class_names))],'treatment':clinical['treatment'],'suggestion':clinical['suggestion'],'confirm_test':clinical['confirm_test']})
     except Exception as e: return jsonify({'error':str(e)}),500
 
-@app.route('/cancer/predict-document', methods=['POST'])
+@app.route('/cancer/predict-document', methods=['POST']) 
 def cancer_predict_document():
-    if 'file' not in request.files: return jsonify({'error':'No file uploaded'}),400
+    if 'file' not in request.files:
+        return jsonify({'error':'No file uploaded'}), 400
+
     file = request.files['file']
+
     try:
         fb       = file.read()
         doc_text = clean_ocr_text(extract_text_from_file(fb, file.filename.lower()))
-        if not doc_text: return jsonify({'error':'No readable text found.'}),400
 
-        # Cancer — enhanced detection
+        if not doc_text:
+            return jsonify({'error':'No readable text found.'}), 400
+
+        # -------------------- CANCER --------------------
         cent = extract_cancer_entities(doc_text)
         rl, rc, sm, staging, elevated_markers = assess_cancer_risk(cent, doc_text)
         detected_types = detect_cancer_types_from_text(doc_text)
 
         if rl is None:
-            cancer_result = {'status':'undetermined','message':'No cancer-related clinical data found in this document. Cancer prediction cannot be made.','entities':[],'detected_types':[],'staging':None,'elevated_markers':[]}
+            cancer_result = {
+                'status':'undetermined',
+                'message':'No cancer-related clinical data found in this document.',
+                'entities':[],
+                'detected_types':[],
+                'staging':None,
+                'elevated_markers':[]
+            }
         else:
-            # Pick clinical info — try KB match on detected type, else use document keyword
             c_clinical = DEFAULT_CANCER_CLINICAL
+
             if detected_types:
                 primary_type = detected_types[0]['name']
             else:
                 mal_kw = [e['keyword'] for e in cent if e['keyword'] in MALIGNANT_KWS]
                 primary_type = mal_kw[0].capitalize() if mal_kw else 'General'
+
             if primary_type in CANCER_CLINICAL:
                 c_clinical = get_cancer_clinical(primary_type)
+
             cancer_result = {
-                'status':        'determined',
-                'risk_level':    rl,
-                'risk_color':    rc,
-                'summary':       sm,
-                'entities':      cent,
-                'entity_count':  len(cent),
+                'status': 'determined',
+                'risk_level': rl,
+                'risk_color': rc,
+                'summary': sm,
+                'entities': cent,
+                'entity_count': len(cent),
                 'detected_types': detected_types,
-                'primary_type':  detected_types[0] if detected_types else None,
-                'staging':       staging,
+                'primary_type': detected_types[0] if detected_types else None,
+                'staging': staging,
                 'elevated_markers': elevated_markers,
-                'treatment':     c_clinical['treatment'],
-                'suggestion':    c_clinical['suggestion'],
-                'confirm_test':  c_clinical['confirm_test'],
+                'treatment': c_clinical['treatment'],
+                'suggestion': c_clinical['suggestion'],
+                'confirm_test': c_clinical['confirm_test'],
             }
 
-        # Autoimmune
-        fv, found, missing = extract_autoimmune_features(doc_text)
-        if not can_predict_autoimmune(found):
-            autoimmune_result = {'status':'undetermined','message':'Insufficient autoimmune markers found in this document. Autoimmune prediction cannot be made.','found_params':found,'found_count':len(found),'missing_count':len(missing)}
+        # -------------------- AUTOIMMUNE --------------------
+        found = extract_autoimmune_features(doc_text)
+
+        rule_pred = detect_autoimmune_rule_based(found)
+
+        if rule_pred:
+            ai_clinical = get_autoimmune_clinical(rule_pred["disease"])
+
+            autoimmune_result = {
+                'status': 'determined',
+                'prediction': rule_pred["disease"],
+                'confidence': rule_pred["confidence"],
+                'reason': rule_pred["reason"],
+                'found_params': found,
+                'treatment': ai_clinical['treatment'],
+                'suggestion': ai_clinical['suggestion'],
+                'confirm_test': ai_clinical['confirm_test']
+            }
+
         else:
-            pred  = ai_model.predict(fv.reshape(1,-1))[0]
-            proba = ai_model.predict_proba(fv.reshape(1,-1))[0]
-            top3  = sorted(zip(ai_model.classes_, proba.tolist()), key=lambda x:-x[1])[:3]
-            ai_clinical = get_autoimmune_clinical(pred)
-            autoimmune_result = {'status':'determined','prediction':pred,'is_normal':bool(pred=='Normal'),'confidence':float(max(proba)*100),'top3':[{'disease':d,'probability':round(p*100,2)} for d,p in top3],'found_params':found,'found_count':len(found),'missing_count':len(missing),'treatment':ai_clinical['treatment'],'suggestion':ai_clinical['suggestion'],'confirm_test':ai_clinical['confirm_test']}
+            # fallback to ML model
+            fv = np.zeros(len(AI_FEATURES))
 
-        return jsonify({'cancer':cancer_result,'autoimmune':autoimmune_result,'extracted_text':doc_text[:1200]+('...' if len(doc_text)>1200 else ''),'word_count':len(doc_text.split())})
-    except RuntimeError as e: return jsonify({'error':str(e)}),500
-    except Exception as e: return jsonify({'error':f'Processing failed: {str(e)}'}),500
+            try:
+                pred  = ai_model.predict(fv.reshape(1,-1))[0]
+                proba = ai_model.predict_proba(fv.reshape(1,-1))[0]
 
+                ai_clinical = get_autoimmune_clinical(pred)
+
+                autoimmune_result = {
+                    'status': 'determined',
+                    'prediction': pred,
+                    'confidence': float(max(proba)*100),
+                    'found_params': found,
+                    'treatment': ai_clinical['treatment'],
+                    'suggestion': ai_clinical['suggestion'],
+                    'confirm_test': ai_clinical['confirm_test']
+                }
+
+            except:
+                autoimmune_result = {
+                    'status': 'undetermined',
+                    'message': 'Not enough data for ML prediction.',
+                    'found_params': found
+                }
+
+        # -------------------- FINAL RESPONSE --------------------
+        return jsonify({
+            'cancer': cancer_result,
+            'autoimmune': autoimmune_result,
+            'extracted_text': doc_text[:1200] + ('...' if len(doc_text) > 1200 else ''),
+            'word_count': len(doc_text.split())
+        })
+
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 500
+
+    except Exception as e:
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 500
 @app.route('/cancer/predict-manual', methods=['POST'])
 def cancer_predict_manual():
     data = request.get_json()

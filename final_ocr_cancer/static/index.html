@@ -40,7 +40,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle noise texture overlay */
 body::before {
   content: '';
   position: fixed;
@@ -52,7 +51,6 @@ body::before {
   z-index: 0;
 }
 
-/* Grid lines */
 body::after {
   content: '';
   position: fixed;
@@ -67,9 +65,7 @@ body::after {
 
 .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 32px; }
 
-/* ══════════════════════════════════════
-   NAV
-══════════════════════════════════════ */
+/* NAV */
 nav {
   padding: 0;
   border-bottom: 1px solid var(--border);
@@ -163,16 +159,12 @@ nav {
 }
 @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.4} }
 
-/* ══════════════════════════════════════
-   PAGES
-══════════════════════════════════════ */
+/* PAGES */
 .page { display: none; padding: 56px 0 100px; animation: fadeUp .4s ease; }
 .page.active { display: block; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-/* ══════════════════════════════════════
-   HERO
-══════════════════════════════════════ */
+/* HERO */
 .hero {
   text-align: center;
   margin-bottom: 64px;
@@ -214,9 +206,7 @@ nav {
   font-weight: 300;
 }
 
-/* ══════════════════════════════════════
-   HOME CARDS
-══════════════════════════════════════ */
+/* HOME CARDS */
 .home-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -326,9 +316,7 @@ nav {
 }
 .home-card:hover .hc-arrow { opacity: 1; }
 
-/* ══════════════════════════════════════
-   SECTION HEADER
-══════════════════════════════════════ */
+/* SECTION HEADER */
 .section-header {
   display: flex;
   align-items: flex-end;
@@ -342,9 +330,7 @@ nav {
 .section-title em { font-style: italic; color: var(--accent); }
 .section-sub { font-size: 13px; color: var(--dim); max-width: 380px; text-align: right; line-height: 1.6; font-weight: 300; }
 
-/* ══════════════════════════════════════
-   TABS
-══════════════════════════════════════ */
+/* TABS */
 .tab-bar {
   display: flex;
   gap: 0;
@@ -372,15 +358,11 @@ nav {
 .sub-panel { display: none; }
 .sub-panel.active { display: block; animation: fadeUp .3s ease; }
 
-/* ══════════════════════════════════════
-   TWO COLUMN
-══════════════════════════════════════ */
+/* TWO COLUMN */
 .two-col { display: grid; grid-template-columns: 1fr 1.1fr; gap: 28px; align-items: start; }
 @media(max-width:700px) { .two-col, .home-grid, .slider-grid { grid-template-columns: 1fr !important; } }
 
-/* ══════════════════════════════════════
-   UPLOAD ZONE
-══════════════════════════════════════ */
+/* UPLOAD ZONE */
 .upload-card {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -488,9 +470,7 @@ nav {
 }
 .prev-rm:hover { border-color: var(--danger); color: var(--danger); }
 
-/* ══════════════════════════════════════
-   FORM ELEMENTS
-══════════════════════════════════════ */
+/* FORM ELEMENTS */
 .field-card {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -530,9 +510,7 @@ select {
 select:focus { border-color: var(--accent); }
 select option { background: var(--surf3); }
 
-/* ══════════════════════════════════════
-   BUTTONS
-══════════════════════════════════════ */
+/* BUTTONS */
 .btn-primary {
   width: 100%;
   padding: 14px;
@@ -579,9 +557,7 @@ select option { background: var(--surf3); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ══════════════════════════════════════
-   SLIDERS
-══════════════════════════════════════ */
+/* SLIDERS */
 .slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
 
 .sl-card {
@@ -628,9 +604,7 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 
 .sl-val { font-family: var(--mono); font-size: 12px; min-width: 34px; text-align: right; color: var(--text2); }
 
-/* ══════════════════════════════════════
-   RESULTS PANEL
-══════════════════════════════════════ */
+/* RESULTS PANEL */
 .result-box { display: none; }
 .result-box.show { display: block; animation: fadeUp .4s ease; }
 
@@ -1067,7 +1041,7 @@ footer {
 
 <div class="wrap">
 
-<!-- ═══════════════════ HOME ═══════════════════ -->
+<!-- HOME -->
 <div class="page active" id="page-home">
   <div class="hero">
     <div class="hero-eyebrow">Medical AI Platform</div>
@@ -1118,7 +1092,7 @@ footer {
   </div>
 </div>
 
-<!-- ═══════════════════ OCR PAGE ═══════════════════ -->
+<!-- OCR PAGE -->
 <div class="page" id="page-ocr">
   <div class="section-header">
     <div>
@@ -1200,7 +1174,7 @@ footer {
   </div>
 </div>
 
-<!-- ═══════════════════ CANCER PAGE ═══════════════════ -->
+<!-- CANCER PAGE -->
 <div class="page" id="page-cancer">
   <div class="section-header">
     <div>
@@ -1337,6 +1311,9 @@ footer {
 </div><!-- /wrap -->
 
 <script>
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach((b,i) => {
@@ -1358,6 +1335,9 @@ function slv(inp, disp) {
   document.getElementById(disp).textContent = parseFloat(document.getElementById(inp).value).toFixed(2);
 }
 
+/* ══════════════════════════════════════
+   DRAG & DROP
+══════════════════════════════════════ */
 function setupDrop(dzId, handler) {
   const dz = document.getElementById(dzId);
   dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
@@ -1368,6 +1348,9 @@ setupDrop('ocr-dz', ocrFileSelect);
 setupDrop('ci-dz',  ciFileSelect);
 setupDrop('cd-dz',  cdFileSelect);
 
+/* ══════════════════════════════════════
+   FILE HANDLERS
+══════════════════════════════════════ */
 let ocrFile = null;
 function ocrFileSelect(f) {
   ocrFile = f;
@@ -1406,6 +1389,9 @@ function cdFileSelect(f) {
 }
 function clearCdFile() { cdFile = null; document.getElementById('cd-prev').classList.remove('show'); document.getElementById('cd-btn').disabled = true; document.getElementById('cd-file').value = ''; }
 
+/* ══════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════ */
 function setLoading(prefix, on) {
   document.getElementById(prefix+'-loading').classList.toggle('show', on);
   const ph = document.getElementById(prefix+'-placeholder');
@@ -1421,6 +1407,26 @@ function setBtnLoading(btnId, spinId, on) {
   document.getElementById(spinId).style.display = on ? 'block' : 'none';
 }
 
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function copyText(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = el.closest('.ocr-block').querySelector('.copy-btn');
+    if (btn) { const t = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = t, 2000); }
+  });
+}
+
+function animateBars(container) {
+  setTimeout(() => {
+    container.querySelectorAll('.prob-fill').forEach(b => { b.style.width = b.dataset.w; });
+    container.querySelectorAll('.ct-fill').forEach(b => { b.style.width = b.dataset.w; });
+  }, 80);
+}
+
+/* ══════════════════════════════════════
+   CLINICAL INFO HTML BUILDER
+══════════════════════════════════════ */
 function clinicalHTML(data) {
   if (!data.treatment) return '';
   return `
@@ -1440,6 +1446,9 @@ function clinicalHTML(data) {
     </div>`;
 }
 
+/* ══════════════════════════════════════
+   CANCER RESULT HTML (image / manual)
+══════════════════════════════════════ */
 function cancerResultHTML(data) {
   const c     = data.is_malignant ? 'danger' : 'safe';
   const icon  = data.is_malignant ? '⚠' : '✓';
@@ -1473,10 +1482,9 @@ function cancerResultHTML(data) {
     ${clinicalHTML(data)}`;
 }
 
-function animateBars(container) {
-  setTimeout(() => { container.querySelectorAll('.prob-fill').forEach(b => { b.style.width = b.dataset.w; }); }, 80);
-}
-
+/* ══════════════════════════════════════
+   OCR
+══════════════════════════════════════ */
 async function runOCR() {
   if (!ocrFile) return;
   setBtnLoading('ocr-btn','ocr-spin',true);
@@ -1526,6 +1534,9 @@ async function runOCR() {
   }
 }
 
+/* ══════════════════════════════════════
+   CANCER — Image
+══════════════════════════════════════ */
 async function runCancerImage() {
   if (!ciFile) return;
   setBtnLoading('ci-btn','ci-spin',true); setLoading('ci',true); setErr('ci-err','');
@@ -1540,21 +1551,32 @@ async function runCancerImage() {
   finally { setBtnLoading('ci-btn','ci-spin',false); setLoading('ci',false); }
 }
 
+/* ══════════════════════════════════════
+   CANCER — Document (ALIGNED WITH app.py)
+══════════════════════════════════════ */
 async function runCancerDocument() {
   if (!cdFile) return;
-  setBtnLoading('cd-btn','cd-spin',true); setLoading('cd',true); setErr('cd-err','');
+
+  setBtnLoading('cd-btn','cd-spin',true);
+  setLoading('cd',true);
+  setErr('cd-err','');
   document.getElementById('cd-result').classList.remove('show');
   document.getElementById('cd-placeholder').style.display = 'none';
+
   try {
-    const fd = new FormData(); fd.append('file', cdFile);
+    const fd = new FormData();
+    fd.append('file', cdFile);
+
     const res  = await fetch('/cancer/predict-document', { method:'POST', body:fd });
-    const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Server error');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
 
     const cancer = data.cancer;
     const ai     = data.autoimmune;
 
-    // ── Cancer section ───────────────────────────────────────────
+    // ── CANCER SECTION ───────────────────────────────────────────
     let cancerHTML = '';
+
     if (cancer.status === 'undetermined') {
       cancerHTML = `
         <div class="section-block-label">Cancer Assessment</div>
@@ -1570,18 +1592,27 @@ async function runCancerDocument() {
         </div>`;
     } else {
       const c      = cancer.risk_color;
-      const icons  = {danger:'⚠',safe:'✓',warn:'◎',neutral:'?'};
-      const labels = {danger:'High Risk — Malignancy Indicators Present',safe:'Low Risk — Benign Findings',warn:'Moderate Risk — Further Evaluation Recommended'};
+      const icons  = {danger:'⚠', safe:'✓', warn:'◎', neutral:'?'};
+      const labels = {
+        danger: 'High Risk — Malignancy Indicators Present',
+        safe:   'Low Risk — Benign Findings',
+        warn:   'Moderate Risk — Further Evaluation Recommended'
+      };
+
+      // Entity list
       const entHTML = cancer.entities.length
-        ? cancer.entities.map(e => { const ctx = e.context.replace(new RegExp(e.keyword,'gi'), m => `<span class="entity-kw-hi">${m}</span>`); return `<div class="entity-item"><div class="entity-kw">${e.keyword}</div><div class="entity-ctx">${ctx}</div></div>`; }).join('')
+        ? cancer.entities.map(e => {
+            const ctx = e.context.replace(new RegExp(e.keyword,'gi'), m => `<span class="entity-kw-hi">${m}</span>`);
+            return `<div class="entity-item"><div class="entity-kw">${e.keyword}</div><div class="entity-ctx">${ctx}</div></div>`;
+          }).join('')
         : '<div style="font-size:12px;color:var(--dim);font-weight:300">No oncological keywords identified.</div>';
 
-      // Staging & markers
+      // Staging & elevated markers
       let metaHTML = '';
       if (cancer.staging) {
         metaHTML += `<div class="meta-badge stage">📋 ${escHtml(cancer.staging)}</div>`;
       }
-      (cancer.elevated_markers||[]).forEach(m => {
+      (cancer.elevated_markers || []).forEach(m => {
         metaHTML += `<div class="meta-badge marker-elevated">🔺 ${escHtml(m.marker)}: ${m.value} (ref &lt;${m.threshold})</div>`;
       });
       const metaRowHTML = metaHTML ? `<div class="meta-row">${metaHTML}</div>` : '';
@@ -1591,11 +1622,13 @@ async function runCancerDocument() {
       if (cancer.detected_types && cancer.detected_types.length > 0) {
         const primary = cancer.detected_types[0];
         const others  = cancer.detected_types.slice(1);
-        const primaryEv = (primary.evidence||[]).map(ev =>
+
+        const primaryEv = (primary.evidence || []).map(ev =>
           `<div style="margin-top:5px;font-size:11px;color:var(--dim);line-height:1.5">
             <span style="color:var(--warn);font-family:var(--mono);font-size:10px;font-weight:500">${escHtml(ev.pattern)}</span>
             &nbsp;${escHtml(ev.context)}
           </div>`).join('');
+
         typesHTML = `
           <div class="cancer-types-block">
             <div class="cancer-types-head">
@@ -1645,8 +1678,9 @@ async function runCancerDocument() {
         ${clinicalHTML(cancer)}`;
     }
 
-    // ── Autoimmune section ───────────────────────────────────────
+    // ── AUTOIMMUNE SECTION ───────────────────────────────────────
     let aiHTML = '';
+
     if (ai.status === 'undetermined') {
       aiHTML = `
         <div class="section-block-label" style="margin-top:24px">Autoimmune Assessment</div>
@@ -1661,18 +1695,29 @@ async function runCancerDocument() {
           </div>
         </div>`;
     } else {
-      const ac     = ai.is_normal ? 'safe' : 'warn';
-      const aicon  = ai.is_normal ? '✓' : '◎';
-      const alabel = ai.is_normal ? 'No Autoimmune Condition Detected' : 'Potential Autoimmune Condition Identified';
-      const top3HTML = ai.top3.map((t,i) => `
-        <div class="prob-row">
-          <div class="prob-cls" style="width:260px">${t.disease}</div>
-          <div class="prob-track"><div class="prob-fill ${i===0&&!ai.is_normal?'warn':'safe'}" data-w="${t.probability}%" style="width:0%"></div></div>
-          <div class="prob-pct">${t.probability}%</div>
-        </div>`).join('');
+      // Determine styling based on prediction
+      const isNormal = ai.prediction === 'Normal';
+      const ac       = isNormal ? 'safe' : 'warn';
+      const aicon    = isNormal ? '✓' : '◎';
+      const alabel   = isNormal ? 'No Autoimmune Condition Detected' : 'Autoimmune Condition Detected';
 
-      const foundKeys = Object.keys(ai.found_params).slice(0,12);
-      const paramsHTML = foundKeys.map(k => `<div class="stat-pill"><strong>${k.replace(/_/g,' ')}</strong> &nbsp;${escHtml(String(ai.found_params[k]))}</div>`).join('');
+      // Format confidence — integer for rule-based, float for ML
+      const confDisplay = Number.isInteger(ai.confidence)
+        ? ai.confidence + '%'
+        : parseFloat(ai.confidence).toFixed(1) + '%';
+
+      // Reason line (only present for rule-based detections)
+      const reasonLine = ai.reason
+        ? `<div class="vrd-conf" style="margin-top:4px;font-size:12px;color:var(--text2)">${escHtml(ai.reason)}</div>`
+        : '';
+
+      // Extracted parameters as stat pills
+      const params     = Object.entries(ai.found_params || {});
+      const foundCount = params.length;
+      const paramsHTML  = params.slice(0, 12).map(([k, v]) =>
+        `<div class="stat-pill"><strong>${escHtml(k.replace(/_/g, ' '))}</strong> &nbsp;${escHtml(String(v))}</div>`
+      ).join('');
+      const moreHTML = foundCount > 12 ? `<div class="stat-pill">+${foundCount - 12} more</div>` : '';
 
       aiHTML = `
         <div class="section-block-label" style="margin-top:24px">Autoimmune Assessment</div>
@@ -1681,23 +1726,20 @@ async function runCancerDocument() {
             <div class="vrd-icon ${ac}" style="font-size:18px;font-family:var(--mono);font-weight:500">${aicon}</div>
             <div>
               <div class="vrd-status ${ac}">${alabel}</div>
-              <div class="vrd-name">${ai.is_normal ? 'Normal' : ai.prediction}</div>
-              <div class="vrd-conf" style="margin-top:4px">Confidence — <strong>${ai.confidence.toFixed(1)}%</strong> &nbsp;·&nbsp; Markers extracted: <strong>${ai.found_count}</strong></div>
+              <div class="vrd-name">${escHtml(ai.prediction)}</div>
+              <div class="vrd-conf" style="margin-top:4px">Confidence — <strong>${confDisplay}</strong> &nbsp;·&nbsp; Markers extracted: <strong>${foundCount}</strong></div>
+              ${reasonLine}
             </div>
           </div>
         </div>
-        <div class="prob-block">
-          <div class="prob-head">Top Differential Diagnoses</div>
-          ${top3HTML}
-        </div>
         <div class="entity-block">
-          <div class="entity-head">Extracted Parameters — ${ai.found_count} of 77</div>
-          <div class="stat-pills" style="margin-bottom:0">${paramsHTML}${ai.found_count>12?`<div class="stat-pill">+${ai.found_count-12} more</div>`:''}</div>
+          <div class="entity-head">Extracted Parameters — ${foundCount} found</div>
+          <div class="stat-pills" style="margin-bottom:0">${paramsHTML}${moreHTML}</div>
         </div>
         ${clinicalHTML(ai)}`;
     }
 
-    // ── Assemble ─────────────────────────────────────────────────
+    // ── FINAL RENDER ─────────────────────────────────────────────
     const el = document.getElementById('cd-result');
     el.innerHTML = `
       <div class="stat-pills">
@@ -1705,40 +1747,45 @@ async function runCancerDocument() {
       </div>
       ${cancerHTML}
       ${aiHTML}
-      ${data.extracted_text ? `<div class="ocr-block" style="margin-top:20px">
-        <div class="ocr-head">Document Text Preview <button class="copy-btn" onclick="copyText('cd-raw')">Copy</button></div>
-        <div class="ocr-text" id="cd-raw">${escHtml(data.extracted_text)}</div>
-      </div>` : ''}`;
+      ${data.extracted_text ? `
+        <div class="ocr-block" style="margin-top:20px">
+          <div class="ocr-head">Document Text Preview <button class="copy-btn" onclick="copyText('cd-raw')">Copy</button></div>
+          <div class="ocr-text" id="cd-raw">${escHtml(data.extracted_text)}</div>
+        </div>` : ''}`;
 
     el.classList.add('show');
-    setTimeout(() => {
-      el.querySelectorAll('.prob-fill').forEach(b => b.style.width = b.dataset.w);
-      el.querySelectorAll('.ct-fill').forEach(b => b.style.width = b.dataset.w);
-    }, 80);
-  } catch(e) { setErr('cd-err', e.message); document.getElementById('cd-placeholder').style.display = ''; }
-  finally { setBtnLoading('cd-btn','cd-spin',false); setLoading('cd',false); }
+    animateBars(el);
+
+  } catch(e) {
+    setErr('cd-err', e.message);
+    document.getElementById('cd-placeholder').style.display = '';
+  } finally {
+    setBtnLoading('cd-btn','cd-spin',false);
+    setLoading('cd',false);
+  }
 }
 
+/* ══════════════════════════════════════
+   CANCER — Manual Parameters
+══════════════════════════════════════ */
 async function runCancerManual() {
   setBtnLoading('cm-btn','cm-spin',true); setLoading('cm',true); setErr('cm-err','');
   document.getElementById('cm-result').classList.remove('show');
   document.getElementById('cm-placeholder').style.display = 'none';
   try {
-    const payload = { mean_intensity:+document.getElementById('sl_mean').value, std_intensity:+document.getElementById('sl_std').value, texture:+document.getElementById('sl_tex').value, cell_size:+document.getElementById('sl_size').value, cell_shape:+document.getElementById('sl_shape').value, symmetry:+document.getElementById('sl_sym').value };
-    const res = await fetch('/cancer/predict-manual', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const body = {
+      mean_intensity: document.getElementById('sl_mean').value,
+      std_intensity:  document.getElementById('sl_std').value,
+      texture:        document.getElementById('sl_tex').value,
+      cell_size:      document.getElementById('sl_size').value,
+      cell_shape:     document.getElementById('sl_shape').value,
+      symmetry:       document.getElementById('sl_sym').value,
+    };
+    const res = await fetch('/cancer/predict-manual', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Server error');
     const c = document.getElementById('cm-result'); c.innerHTML = cancerResultHTML(data); c.classList.add('show'); animateBars(c);
   } catch(e) { setErr('cm-err', e.message); document.getElementById('cm-placeholder').style.display = ''; }
   finally { setBtnLoading('cm-btn','cm-spin',false); setLoading('cm',false); }
-}
-
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function copyText(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    const btn = el.closest('.ocr-block').querySelector('.copy-btn');
-    if (btn) { const t = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = t, 2000); }
-  });
 }
 </script>
 </body>
