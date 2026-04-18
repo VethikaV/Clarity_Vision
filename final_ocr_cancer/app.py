@@ -28,7 +28,9 @@ ai_model    = joblib.load(os.path.join(MODELS_DIR, 'autoimmune.pkl'))
 AI_FEATURES = list(ai_model.feature_names_in_)
 print(f"Models loaded | Cancer classes: {len(class_names)} | Autoimmune features: {len(AI_FEATURES)}")
 
+# ══════════════════════════════════════════════════════════════════════════════
 # PDF helper
+# ══════════════════════════════════════════════════════════════════════════════
 def pdf_to_images(file_bytes, max_pages=3):
     try:
         import fitz
@@ -44,14 +46,19 @@ def pdf_to_images(file_bytes, max_pages=3):
     except ImportError:
         raise RuntimeError("PyMuPDF not installed. Run: pip install pymupdf")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Translation
+# ══════════════════════════════════════════════════════════════════════════════
 SUPPORTED_LANGUAGES = {
     'en':'English','hi':'Hindi','ta':'Tamil','te':'Telugu','ml':'Malayalam',
     'bn':'Bengali','fr':'French','de':'German','es':'Spanish','it':'Italian',
-    'pt':'Portuguese','zh-CN':'Chinese','ar':'Arabic','ru':'Russian','ja':'Japanese','ko':'Korean'
+    'pt':'Portuguese','zh-CN':'Chinese','ar':'Arabic','ru':'Russian',
+    'ja':'Japanese','ko':'Korean'
 }
 
 def translate_text(text, target_lang):
-    if target_lang == 'en': return text
+    if target_lang == 'en':
+        return text
     try:
         from deep_translator import GoogleTranslator
         return GoogleTranslator(source='auto', target=target_lang).translate(text)
@@ -72,31 +79,126 @@ def extract_text_from_file(file_bytes, filename):
     image = Image.open(io.BytesIO(file_bytes))
     return pytesseract.image_to_string(image).strip()
 
-# Cancer keywords
-CANCER_KEYWORDS = ['cancer','malignant','benign','tumor','tumour','carcinoma','lymphoma',
-    'leukemia','leukaemia','metastasis','metastatic','biopsy','oncology','chemotherapy',
-    'radiation','staging','grade','nodule','lesion','mass','diagnosis','prognosis',
-    'pathology','cytology','histology','adenocarcinoma','sarcoma','melanoma','neoplasm',
-    'malignancy','remission','recurrence','invasive','infiltrating','ductal','lobular',
-    'squamous','basal cell','transitional cell','anaplastic','poorly differentiated',
-    'well differentiated','moderately differentiated','lymph node','margin','resection',
-    'excision','ablation','immunotherapy','targeted therapy','hormone receptor','her2',
-    'brca','psa','cea','ca125','ca19-9','afp','pdl1','ki67','mitosis','necrosis']
+# ══════════════════════════════════════════════════════════════════════════════
+# IMPROVED NEGATION ENGINE
+# ══════════════════════════════════════════════════════════════════════════════
 
-MALIGNANT_KWS = {'malignant','cancer','carcinoma','lymphoma','leukemia','leukaemia',
-    'metastasis','metastatic','adenocarcinoma','sarcoma','melanoma','neoplasm','malignancy',
-    'invasive','infiltrating','poorly differentiated','anaplastic'}
-BENIGN_KWS = {'benign','normal','negative','no malignancy','no cancer','clear','unremarkable',
-    'reactive','inflammatory','non-neoplastic'}
-NEGATION_PATTERNS = [
-    r'no\s+(?:evidence\s+of\s+)?(?:malignancy|cancer|tumor|carcinoma)',
-    r'negative\s+for\s+(?:malignancy|cancer|carcinoma)',
-    r'not\s+(?:malignant|cancerous)',
-    r'rule\s+out\s+(?:malignancy|cancer)',
-    r'benign',r'non.malignant',r'non.neoplastic'
+# Strong negation phrases that COMPLETELY override malignancy signals
+STRONG_NEGATIVE_PHRASES = [
+    r'no\s+evidence\s+of\s+malignancy',
+    r'no\s+evidence\s+of\s+cancer',
+    r'no\s+evidence\s+of\s+metastasis',
+    r'no\s+evidence\s+of\s+tumor',
+    r'no\s+evidence\s+of\s+tumour',
+    r'no\s+evidence\s+of\s+neoplasm',
+    r'no\s+sign\s+of\s+malignancy',
+    r'no\s+sign\s+of\s+cancer',
+    r'negative\s+for\s+malignancy',
+    r'negative\s+for\s+cancer',
+    r'negative\s+for\s+carcinoma',
+    r'negative\s+for\s+metastasis',
+    r'free\s+of\s+(?:malignancy|cancer|carcinoma|neoplasm)',
+    r'without\s+(?:evidence\s+of\s+)?(?:malignancy|cancer|carcinoma)',
+    r'no\s+malignancy\s+(?:identified|detected|seen|found|noted)',
+    r'no\s+cancer\s+(?:identified|detected|seen|found|noted)',
+    r'(?:tumor|tumour)\s+(?:is\s+)?benign',
+    r'benign\s+(?:lesion|tumor|tumour|mass|nodule|growth|neoplasm)',
+    r'(?:findings?\s+(?:are?\s+)?)?(?:unremarkable|normal|within\s+normal\s+limits)',
+    r'no\s+(?:abnormal|suspicious|malignant)\s+(?:findings?|cells?|tissue)',
+    r'ruled?\s+out\s+(?:malignancy|cancer|carcinoma)',
 ]
 
-# ── Cancer Type Detection Map ──────────────────────────────────────────────────
+# Negation prefixes that appear BEFORE a keyword and negate it
+NEGATION_PREFIXES = [
+    'no evidence of', 'no sign of', 'no signs of', 'negative for',
+    'without', 'free of', 'free from', 'absence of', 'absent',
+    'no', 'not', 'none', 'nor', 'never', 'neither',
+    'unlikely', 'improbable', 'excluded', 'ruled out',
+    'no indication of', 'does not suggest', 'does not indicate',
+    'failed to demonstrate', 'failed to reveal',
+    'no history of', 'denies', 'denied',
+]
+
+
+def has_strong_negative(text):
+    """
+    NEGATIVE DOMINANCE RULE: Check if the entire document contains
+    phrases that clearly indicate NO malignancy.
+    Returns True if document is clearly negative.
+    """
+    tl = text.lower()
+    for pat in STRONG_NEGATIVE_PHRASES:
+        if re.search(pat, tl):
+            return True
+    return False
+
+
+def is_negated(text, start, end, window_before=120, window_after=50):
+    """
+    Improved negation detection.
+    Looks at a window around the keyword match and checks for negation cues.
+    """
+    window_start = max(0, start - window_before)
+    window_end   = min(len(text), end + window_after)
+    window_text  = text[window_start:window_end].lower()
+
+    # Check for strong negative phrases in the window
+    for pat in STRONG_NEGATIVE_PHRASES:
+        if re.search(pat, window_text):
+            return True
+
+    # Check for negation prefixes immediately before the keyword
+    before_text = text[window_start:start].lower().strip()
+    for neg in NEGATION_PREFIXES:
+        if before_text.endswith(neg):
+            return True
+        # Also check with minor whitespace / punctuation gaps
+        if re.search(re.escape(neg) + r'[\s,;:\-]*$', before_text):
+            return True
+
+    return False
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# WEIGHTED KEYWORD SCORING
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Keywords with weights: higher = stronger signal of malignancy
+MALIGNANT_WEIGHTED = {
+    'malignant': 4, 'cancer': 3, 'carcinoma': 4, 'lymphoma': 4,
+    'leukemia': 4, 'leukaemia': 4, 'metastasis': 5, 'metastatic': 5,
+    'adenocarcinoma': 4, 'sarcoma': 4, 'melanoma': 4, 'neoplasm': 3,
+    'malignancy': 4, 'invasive': 3, 'infiltrating': 3,
+    'poorly differentiated': 3, 'anaplastic': 4,
+}
+
+BENIGN_WEIGHTED = {
+    'benign': -3, 'normal': -2, 'negative': -2, 'unremarkable': -3,
+    'reactive': -2, 'inflammatory': -1, 'non-neoplastic': -3,
+    'no malignancy': -5, 'no cancer': -5, 'clear': -2,
+}
+
+# Contextual terms: present in many reports without implying cancer
+CONTEXTUAL_ONLY = {
+    'tumor', 'tumour', 'biopsy', 'oncology', 'chemotherapy', 'radiation',
+    'staging', 'grade', 'nodule', 'lesion', 'mass', 'diagnosis',
+    'prognosis', 'pathology', 'cytology', 'histology', 'remission',
+    'recurrence', 'margin', 'resection', 'excision', 'ablation',
+    'immunotherapy', 'targeted therapy', 'hormone receptor', 'her2',
+    'brca', 'psa', 'cea', 'ca125', 'ca19-9', 'afp', 'pdl1',
+    'ki67', 'mitosis', 'necrosis',
+}
+
+# Full list for entity extraction (all keywords)
+CANCER_KEYWORDS = (
+    list(MALIGNANT_WEIGHTED.keys()) +
+    list(BENIGN_WEIGHTED.keys()) +
+    list(CONTEXTUAL_ONLY)
+)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Cancer Type Detection Map (unchanged patterns, but scoring uses new negation)
+# ══════════════════════════════════════════════════════════════════════════════
 CANCER_TYPE_PATTERNS = {
     'Breast Cancer': {
         'patterns': [r'breast\s+(?:cancer|carcinoma|tumor|mass|nodule|lesion)',
@@ -292,31 +394,34 @@ STAGE_PATTERNS = {
     'Stage IV':  [r'stage\s+iv\b',r'stage\s+4\b',r'\bpT4\b',r'\bT4\b',r'metastatic',r'metastasis'],
 }
 
-def detect_negation(text, position, window=80):
-    """Check if a match is negated by nearby text."""
-    # Look at text before and slightly after the keyword
-    before = text[max(0, position-window):position].lower()
-    around = text[max(0, position-window):min(len(text), position+60)].lower()
-    for pat in NEGATION_PATTERNS:
-        if re.search(pat, around):
-            return True
-    return False
+
+# ══════════════════════════════════════════════════════════════════════════════
+# IMPROVED CANCER ANALYSIS FUNCTIONS
+# ══════════════════════════════════════════════════════════════════════════════
 
 def detect_cancer_types_from_text(text):
-    """Advanced cancer type detection from document text."""
+    """Advanced cancer type detection using improved negation."""
     tl = text.lower()
+
+    # NEGATIVE DOMINANCE: if document is clearly negative, return nothing
+    if has_strong_negative(tl):
+        return []
+
     detected = []
     for cancer_name, info in CANCER_TYPE_PATTERNS.items():
         score = 0
         matched_patterns = []
         for pat in info['patterns']:
             for m in re.finditer(pat, tl):
-                if not detect_negation(tl, m.start(), window=70):
+                if not is_negated(tl, m.start(), m.end()):
                     score += 1
-                    snippet = text[max(0, m.start()-35):min(len(text), m.end()+55)].strip().replace('\n',' ')
-                    matched_patterns.append({'pattern': m.group(0), 'context': f'...{snippet}...'})
-                    break  # one match per pattern is enough for scoring
-        if score >= 1:
+                    snippet = text[max(0, m.start()-35):min(len(text), m.end()+55)].strip().replace('\n', ' ')
+                    matched_patterns.append({
+                        'pattern': m.group(0),
+                        'context': f'...{snippet}...'
+                    })
+                    break  # one match per pattern is enough
+        if score >= 2:  # RAISED threshold: need at least 2 non-negated pattern matches
             detected.append({
                 'name': cancer_name,
                 'icd10': info['icd10'],
@@ -326,7 +431,8 @@ def detect_cancer_types_from_text(text):
                 'evidence': matched_patterns[:3],
             })
     detected.sort(key=lambda x: -x['score'])
-    return detected[:5]  # top 5
+    return detected[:5]
+
 
 def extract_staging_info(text):
     """Extract staging information from text."""
@@ -336,6 +442,7 @@ def extract_staging_info(text):
             if re.search(pat, tl):
                 return stage
     return None
+
 
 def extract_elevated_markers(text):
     """Extract and evaluate lab markers for malignancy."""
@@ -348,51 +455,296 @@ def extract_elevated_markers(text):
                 val = float(m.group(1))
                 threshold = LAB_THRESHOLDS.get(marker)
                 if threshold and val > threshold:
-                    elevated.append({'marker': marker.replace('elevated_','').upper().replace('_','-'),
-                                     'value': val, 'threshold': threshold})
+                    elevated.append({
+                        'marker': marker.replace('elevated_', '').upper().replace('_', '-'),
+                        'value': val,
+                        'threshold': threshold
+                    })
             except:
                 pass
     return elevated
 
+
 def extract_cancer_entities(text):
-    found, tl = [], text.lower()
+    """
+    Extract cancer-related keywords WITH negation awareness.
+    Only returns entities that are NOT negated.
+    """
+    found = []
+    tl = text.lower()
+
     for kw in CANCER_KEYWORDS:
-        if kw in tl:
-            idx = tl.find(kw)
-            if not detect_negation(tl, idx, window=60):
-                ctx = text[max(0,idx-40):min(len(text),idx+len(kw)+40)].strip().replace('\n',' ')
-                found.append({'keyword':kw,'context':f'...{ctx}...'})
+        idx = tl.find(kw)
+        if idx == -1:
+            continue
+
+        # Skip if this keyword is negated
+        if is_negated(tl, idx, idx + len(kw)):
+            continue
+
+        ctx = text[max(0, idx-40):min(len(text), idx+len(kw)+40)].strip().replace('\n', ' ')
+        found.append({'keyword': kw, 'context': f'...{ctx}...'})
+
     return found
 
+
+def compute_weighted_score(text):
+    """
+    Compute a WEIGHTED cancer score from text.
+    Positive = malignant signals, negative = benign signals.
+    Contextual-only keywords do NOT add to the score.
+    """
+    tl = text.lower()
+    score = 0.0
+
+    # ── STEP 1: NEGATIVE DOMINANCE ──────────────────────────────────────────
+    # If the document explicitly says "no malignancy", override everything
+    if has_strong_negative(tl):
+        return -10  # strongly negative → forces LOW risk
+
+    # ── STEP 2: Score malignant keywords (only if not negated) ──────────────
+    for kw, weight in MALIGNANT_WEIGHTED.items():
+        for m in re.finditer(re.escape(kw), tl):
+            if not is_negated(tl, m.start(), m.end()):
+                score += weight
+
+    # ── STEP 3: Score benign keywords (subtract) ───────────────────────────
+    for kw, weight in BENIGN_WEIGHTED.items():
+        if kw in tl:
+            score += weight  # weight is already negative
+
+    # ── STEP 4: Elevated lab markers boost score ───────────────────────────
+    elevated_markers = extract_elevated_markers(text)
+    score += len(elevated_markers) * 2
+
+    return score
+
+
 def assess_cancer_risk(entities, text=''):
-    """Enhanced risk assessment using entity + NLP signals."""
+    """
+    Improved risk assessment using WEIGHTED SCORING + NEGATION DOMINANCE.
+    No longer relies on "do entities exist? → must be cancer".
+    """
     tl = text.lower() if text else ''
-    found_kws = {e['keyword'] for e in entities}
-    mal = sum(1 for k in found_kws if k in MALIGNANT_KWS)
-    ben = sum(1 for k in found_kws if k in BENIGN_KWS)
-    
-    # Check for clear negation of malignancy in the whole doc
-    clear_negative = any(re.search(pat, tl) for pat in NEGATION_PATTERNS[:4])
+
     elevated_markers = extract_elevated_markers(text) if text else []
     staging = extract_staging_info(text) if text else None
 
+    # If no entities at all, undetermined
     if not entities:
         return None, None, None, None, []
-    
-    bonus_confidence = len(elevated_markers) * 8
-    
-    if clear_negative and mal == 0:
-        return 'LOW', 'safe', 'No malignancy detected. Document indicates benign or negative findings. Routine follow-up advised.', staging, elevated_markers
-    if mal > 0:
-        stage_note = f' Staging: {staging}.' if staging else ''
-        marker_note = f' {len(elevated_markers)} elevated tumour marker(s) detected.' if elevated_markers else ''
-        conf_score = min(98, 55 + mal*12 + bonus_confidence)
-        return 'HIGH', 'danger', f'{mal} malignancy indicator(s) found.{stage_note}{marker_note} Urgent specialist review recommended. Estimated confidence: {conf_score}%', staging, elevated_markers
-    if ben > 0:
-        return 'LOW', 'safe', 'Benign findings indicated. Routine follow-up and monitoring advised.', staging, elevated_markers
-    return 'MODERATE', 'warn', f'{len(entities)} cancer-related term(s) present. Further clinical evaluation recommended.', staging, elevated_markers
 
-# ── Clinical info: treatment, suggestion, confirm test ──────────────
+    # ── COMPUTE WEIGHTED SCORE ──────────────────────────────────────────────
+    score = compute_weighted_score(text) if text else 0
+
+    # If we only have entities but no text to score, do a simple entity-based score
+    if not text:
+        found_kws = {e['keyword'] for e in entities}
+        for kw in found_kws:
+            if kw in MALIGNANT_WEIGHTED:
+                score += MALIGNANT_WEIGHTED[kw]
+            elif kw in BENIGN_WEIGHTED:
+                score += BENIGN_WEIGHTED[kw]
+            # contextual-only keywords contribute 0
+
+    # ── DETERMINE RISK LEVEL FROM SCORE ─────────────────────────────────────
+    stage_note  = f' Staging: {staging}.' if staging else ''
+    marker_note = f' {len(elevated_markers)} elevated tumour marker(s) detected.' if elevated_markers else ''
+
+    if score <= 0:
+        return (
+            'LOW', 'safe',
+            'No significant malignancy indicators found. Document may contain cancer-related '
+            'terminology in a benign or negative context. Routine follow-up advised.',
+            staging, elevated_markers
+        )
+    elif score <= 5:
+        return (
+            'MODERATE', 'warn',
+            f'Some cancer-related terms detected (score {score:.0f}).{stage_note}{marker_note} '
+            f'Further clinical evaluation recommended to clarify findings.',
+            staging, elevated_markers
+        )
+    else:
+        conf_score = min(98, 50 + int(score) * 6)
+        return (
+            'HIGH', 'danger',
+            f'Strong malignancy indicators found (score {score:.0f}).{stage_note}{marker_note} '
+            f'Urgent specialist review recommended. Estimated confidence: {conf_score}%.',
+            staging, elevated_markers
+        )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# STRUCTURED FEATURE EXTRACTION (for your 9-column trained model)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Map these to your ACTUAL training column names
+CANCER_MODEL_COLUMNS = [
+    'Age', 'Gender', 'BMI', 'Smoking', 'GeneticRisk',
+    'PhysicalActivity', 'AlcoholIntake', 'CancerHistory',
+    # Add your 9th column name here, e.g.:
+    # 'FamilyHistory'
+]
+
+def extract_structured_cancer_features(text):
+    """
+    Extract the structured features your RF model was actually trained on.
+    Returns a dict of {column_name: value} for features found.
+    """
+    tl = text.lower()
+    features = {}
+
+    # Age
+    m = re.search(r'(?:age|aged?)[:\s]+(\d{1,3})\b', tl)
+    if m:
+        features['Age'] = float(m.group(1))
+
+    # Gender (1=male, 0=female — match your training encoding)
+    m = re.search(r'\b(male|female)\b', tl)
+    if m:
+        features['Gender'] = 1.0 if m.group(1) == 'male' else 0.0
+
+    # BMI
+    m = re.search(r'bmi[:\s]+(\d+\.?\d*)', tl)
+    if m:
+        features['BMI'] = float(m.group(1))
+
+    # Smoking
+    if re.search(r'(?:smoker|smoking|tobacco|cigarette)', tl):
+        if re.search(r'(?:non.?smoker|never smoked|no smoking|no tobacco)', tl):
+            features['Smoking'] = 0.0
+        else:
+            features['Smoking'] = 1.0
+
+    # Genetic risk / family history
+    if re.search(r'(?:family history|genetic risk|hereditary|familial|brca)', tl):
+        features['GeneticRisk'] = 1.0
+
+    # Physical activity
+    m = re.search(r'physical activity[:\s]+(\d+\.?\d*)', tl)
+    if m:
+        features['PhysicalActivity'] = float(m.group(1))
+
+    # Alcohol intake
+    if re.search(r'(?:alcohol|drinking|ethanol)', tl):
+        if re.search(r'(?:no alcohol|non.?drinker|never drinks|abstinent)', tl):
+            features['AlcoholIntake'] = 0.0
+        else:
+            features['AlcoholIntake'] = 1.0
+
+    # Cancer history
+    if re.search(r'(?:previous cancer|prior malignancy|cancer history|history of cancer)', tl):
+        features['CancerHistory'] = 1.0
+
+    return features
+
+
+def predict_with_structured_model(features_dict):
+    """
+    Use the trained RF model with the structured features.
+    Returns (class_name, confidence, probabilities) or None if not enough features.
+    """
+    # Need at least 4 of the training columns to make a reasonable prediction
+    available = {k: v for k, v in features_dict.items() if k in CANCER_MODEL_COLUMNS}
+    if len(available) < 4:
+        return None
+
+    # Build feature vector in training column order, default 0 for missing
+    fv = np.array([features_dict.get(col, 0.0) for col in CANCER_MODEL_COLUMNS]).reshape(1, -1)
+
+    try:
+        fv_scaled = scaler.transform(fv)
+        pred  = rf_model.predict(fv_scaled)[0]
+        proba = rf_model.predict_proba(fv_scaled)[0]
+        cname = class_names[pred]
+        return {
+            'prediction': int(pred),
+            'class_name': cname,
+            'is_malignant': bool(pred != 0),
+            'confidence': float(max(proba) * 100),
+            'probabilities': [
+                {'class': class_names[i], 'probability': float(proba[i]*100), 'is_malignant': i != 0}
+                for i in range(len(class_names))
+            ]
+        }
+    except Exception as e:
+        print(f"Structured model prediction failed: {e}")
+        return None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# COMBINED SCORING: text NLP + structured model
+# ══════════════════════════════════════════════════════════════════════════════
+
+def combined_cancer_assessment(text):
+    """
+    Combine text-based NLP scoring with structured ML model prediction.
+    Returns a unified cancer result dict.
+    """
+    # 1. Text-based analysis
+    entities       = extract_cancer_entities(text)
+    text_score     = compute_weighted_score(text)
+    detected_types = detect_cancer_types_from_text(text)
+    staging        = extract_staging_info(text)
+    elevated_markers = extract_elevated_markers(text)
+
+    # 2. Structured model prediction
+    struct_features = extract_structured_cancer_features(text)
+    model_result    = predict_with_structured_model(struct_features)
+
+    # 3. Combine scores
+    # Normalise text_score to 0-1 range (clamp between -10 and 20)
+    text_norm = max(0.0, min(1.0, (text_score + 10) / 30.0))
+
+    if model_result:
+        model_malignant_prob = sum(
+            p['probability'] for p in model_result['probabilities'] if p['is_malignant']
+        ) / 100.0
+        # Weighted combination: 70% text, 30% structured model
+        combined = 0.7 * text_norm + 0.3 * model_malignant_prob
+    else:
+        combined = text_norm
+
+    # 4. Determine final risk from combined score
+    if combined <= 0.3:
+        rl, rc = 'LOW', 'safe'
+        sm = ('No significant malignancy indicators. Document may mention cancer-related '
+              'terms in a benign or educational context. Routine follow-up advised.')
+    elif combined <= 0.55:
+        rl, rc = 'MODERATE', 'warn'
+        sm = ('Some cancer-related signals detected. Further clinical evaluation '
+              'recommended to clarify findings.')
+    else:
+        conf = min(98, int(combined * 100))
+        rl, rc = 'HIGH', 'danger'
+        sm = (f'Strong malignancy indicators (confidence ~{conf}%). '
+              f'Urgent specialist review recommended.')
+
+    stage_note = f' Staging: {staging}.' if staging else ''
+    marker_note = f' {len(elevated_markers)} elevated tumour marker(s).' if elevated_markers else ''
+    sm += stage_note + marker_note
+
+    return {
+        'risk_level': rl,
+        'risk_color': rc,
+        'summary': sm,
+        'entities': entities,
+        'entity_count': len(entities),
+        'detected_types': detected_types,
+        'staging': staging,
+        'elevated_markers': elevated_markers,
+        'text_score': round(text_score, 2),
+        'combined_score': round(combined, 3),
+        'structured_features_found': struct_features,
+        'model_prediction': model_result,
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Clinical info (unchanged)
+# ══════════════════════════════════════════════════════════════════════════════
+
 CANCER_CLINICAL = {
     'Benign': {
         'treatment':    'No cancer treatment required. Regular monitoring and follow-up are recommended to track any changes over time.',
@@ -492,7 +844,11 @@ def get_cancer_clinical(class_name):
 def get_autoimmune_clinical(disease):
     return AUTOIMMUNE_CLINICAL.get(disease, DEFAULT_AI_CLINICAL)
 
-# Autoimmune feature patterns
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Autoimmune feature extraction (unchanged)
+# ══════════════════════════════════════════════════════════════════════════════
+
 SYMPTOM_FEATURES = {'Low-grade fever','Fatigue or chronic tiredness','Dizziness','Weight loss',
     'Rashes and skin lesions','Stiffness in the joints','Brittle hair or hair loss',
     'Dry eyes and/or mouth',"General 'unwell' feeling",'Joint pain'}
@@ -583,58 +939,65 @@ def extract_autoimmune_features(text):
     tl = text.lower()
     found = {}
 
-    # ANA
     ana_match = re.search(r'ana.*?(\d+\.?\d*)', tl)
     if ana_match:
         found['ANA'] = float(ana_match.group(1))
     elif 'ana' in tl:
         found['ANA'] = convert_positive_to_value(tl)
 
-    # Anti-dsDNA
     dsdna_match = re.search(r'anti.ds.?dna.*?(\d+\.?\d*)', tl)
     if dsdna_match:
         found['Anti-dsDNA'] = float(dsdna_match.group(1))
     elif 'anti-dsdna' in tl:
         found['Anti-dsDNA'] = convert_positive_to_value(tl)
 
-    # Anti-Sm
     if 'anti-sm' in tl:
         found['Anti-Sm'] = convert_positive_to_value(tl)
 
-    # Complement C4d
     if 'c4d' in tl:
         found['C4d'] = convert_positive_to_value(tl)
 
+    # Extract additional autoimmune features from text
+    for feat, patterns in AI_PARAM_PATTERNS.items():
+        if feat in found:
+            continue
+        for pat in patterns:
+            m = re.search(pat, tl)
+            if m:
+                try:
+                    val = m.group(1)
+                    if val in ('male', 'female'):
+                        found[feat] = 1.0 if val == 'male' else 0.0
+                    else:
+                        found[feat] = float(val)
+                except (ValueError, IndexError):
+                    # For binary symptom features, mark as present
+                    if feat in SYMPTOM_FEATURES:
+                        found[feat] = 1.0
+                    elif feat in ANTIBODY_BINARY:
+                        found[feat] = 1.0
+                break
+
     print("Extracted Autoimmune Features:", found)
     return found
-def detect_autoimmune_rule_based(found):
-    """
-    Rule-based detection for autoimmune diseases
-    """
 
-    # --- Systemic Lupus Erythematosus (SLE) ---
-    if (
-        found.get('ANA', 0) >= 2 and
-        found.get('Anti-dsDNA', 0) >= 2
-    ):
+
+def detect_autoimmune_rule_based(found):
+    """Rule-based detection for autoimmune diseases."""
+    if found.get('ANA', 0) >= 2 and found.get('Anti-dsDNA', 0) >= 2:
         return {
             "disease": "Systemic Lupus Erythematosus",
             "confidence": 95,
             "reason": "ANA positive + Anti-dsDNA positive"
         }
 
-    # --- Rheumatoid Arthritis (basic rule) ---
-    if (
-        found.get('Rheumatoid factor', 0) >= 2 or
-        found.get('ACPA', 0) >= 2
-    ):
+    if found.get('Rheumatoid factor', 0) >= 2 or found.get('ACPA', 0) >= 2:
         return {
             "disease": "Rheumatoid arthritis",
             "confidence": 85,
             "reason": "RF or Anti-CCP positive"
         }
 
-    # --- Thyroid (Hashimoto) ---
     if found.get('Anti-TPO', 0) >= 2:
         return {
             "disease": "Hashimoto's thyroiditis",
@@ -644,44 +1007,104 @@ def detect_autoimmune_rule_based(found):
 
     return None
 
+
 def can_predict_autoimmune(found):
     return len(AI_MIN_KEYS & set(found.keys())) >= 2
 
-# Routes
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ROUTES
+# ══════════════════════════════════════════════════════════════════════════════
+
 @app.route('/')
-def index(): return send_from_directory(STATIC_DIR, 'index.html')
+def index():
+    return send_from_directory(STATIC_DIR, 'index.html')
 
 @app.route('/<path:filename>')
-def static_files(filename): return send_from_directory(STATIC_DIR, filename)
+def static_files(filename):
+    return send_from_directory(STATIC_DIR, filename)
+
 
 @app.route('/ocr/process', methods=['POST'])
 def ocr_process():
-    if 'file' not in request.files: return jsonify({'error':'No file uploaded'}),400
-    file = request.files['file']; lang = request.form.get('language','en')
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+
+    file = request.files['file']
+    lang = request.form.get('language', 'en')
+
     try:
-        fb = file.read(); raw = extract_text_from_file(fb, file.filename.lower())
-        if not raw: return jsonify({'extracted_text':'','translated_text':'','entities':[],'word_count':0,'entity_count':0,'target_language':SUPPORTED_LANGUAGES.get(lang,lang)})
-        cleaned = clean_ocr_text(raw)
-        return jsonify({'extracted_text':cleaned,'translated_text':translate_text(raw,lang),'target_language':SUPPORTED_LANGUAGES.get(lang,lang),'entities':extract_cancer_entities(cleaned),'word_count':len(cleaned.split()),'entity_count':len(extract_cancer_entities(cleaned))})
-    except RuntimeError as e: return jsonify({'error':str(e)}),500
-    except Exception as e: return jsonify({'error':f'Processing failed: {str(e)}'}),500
+        fb  = file.read()
+        raw = extract_text_from_file(fb, file.filename.lower())
+
+        if not raw:
+            return jsonify({
+                'extracted_text': '', 'translated_text': '', 'entities': [],
+                'word_count': 0, 'entity_count': 0,
+                'target_language': SUPPORTED_LANGUAGES.get(lang, lang)
+            })
+
+        cleaned  = clean_ocr_text(raw)
+        entities = extract_cancer_entities(cleaned)
+
+        return jsonify({
+            'extracted_text': cleaned,
+            'translated_text': translate_text(raw, lang),
+            'target_language': SUPPORTED_LANGUAGES.get(lang, lang),
+            'entities': entities,
+            'word_count': len(cleaned.split()),
+            'entity_count': len(entities)
+        })
+
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 500
+
 
 @app.route('/cancer/predict-image', methods=['POST'])
 def cancer_predict_image():
-    if 'file' not in request.files: return jsonify({'error':'No file uploaded'}),400
+    """
+    Image-based prediction.
+    NOTE: This still uses your RF model trained on 9 columns.
+    If your model was NOT trained on image pixel data, this will give
+    unreliable results. Consider training a separate image model.
+    """
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
     try:
-        img  = Image.open(request.files['file'].stream).convert('L').resize((40,32),Image.LANCZOS)
-        feat = scaler.transform(np.array(img).flatten().astype(float).reshape(1,-1)/255.0)
-        pred = rf_model.predict(feat)[0]; proba = rf_model.predict_proba(feat)[0]
+        img  = Image.open(request.files['file'].stream).convert('L').resize((40, 32), Image.LANCZOS)
+        feat = scaler.transform(np.array(img).flatten().astype(float).reshape(1, -1) / 255.0)
+        pred  = rf_model.predict(feat)[0]
+        proba = rf_model.predict_proba(feat)[0]
         cname = class_names[pred]
         clinical = get_cancer_clinical(cname)
-        return jsonify({'prediction':int(pred),'class_name':cname,'is_malignant':bool(pred!=0),'confidence':float(max(proba)*100),'probabilities':[{'class':class_names[i],'probability':float(proba[i]*100),'is_malignant':i!=0} for i in range(len(class_names))],'treatment':clinical['treatment'],'suggestion':clinical['suggestion'],'confirm_test':clinical['confirm_test']})
-    except Exception as e: return jsonify({'error':str(e)}),500
 
-@app.route('/cancer/predict-document', methods=['POST']) 
+        return jsonify({
+            'prediction': int(pred),
+            'class_name': cname,
+            'is_malignant': bool(pred != 0),
+            'confidence': float(max(proba) * 100),
+            'probabilities': [
+                {'class': class_names[i], 'probability': float(proba[i]*100), 'is_malignant': i != 0}
+                for i in range(len(class_names))
+            ],
+            'treatment': clinical['treatment'],
+            'suggestion': clinical['suggestion'],
+            'confirm_test': clinical['confirm_test']
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/cancer/predict-document', methods=['POST'])
 def cancer_predict_document():
+    """
+    IMPROVED document prediction endpoint.
+    Uses: negation dominance + weighted scoring + structured model + combined assessment.
+    """
     if 'file' not in request.files:
-        return jsonify({'error':'No file uploaded'}), 400
+        return jsonify({'error': 'No file uploaded'}), 400
 
     file = request.files['file']
 
@@ -690,58 +1113,64 @@ def cancer_predict_document():
         doc_text = clean_ocr_text(extract_text_from_file(fb, file.filename.lower()))
 
         if not doc_text:
-            return jsonify({'error':'No readable text found.'}), 400
+            return jsonify({'error': 'No readable text found.'}), 400
 
-        # -------------------- CANCER --------------------
-        cent = extract_cancer_entities(doc_text)
-        rl, rc, sm, staging, elevated_markers = assess_cancer_risk(cent, doc_text)
-        detected_types = detect_cancer_types_from_text(doc_text)
+        # ────────────────── CANCER (IMPROVED) ──────────────────
+        cancer_assessment = combined_cancer_assessment(doc_text)
 
-        if rl is None:
+        if not cancer_assessment['entities'] and not cancer_assessment['model_prediction']:
             cancer_result = {
-                'status':'undetermined',
-                'message':'No cancer-related clinical data found in this document.',
-                'entities':[],
-                'detected_types':[],
-                'staging':None,
-                'elevated_markers':[]
+                'status': 'undetermined',
+                'message': 'No cancer-related clinical data found in this document.',
+                'entities': [],
+                'detected_types': [],
+                'staging': None,
+                'elevated_markers': []
             }
         else:
+            # Determine clinical info based on detected type or model prediction
             c_clinical = DEFAULT_CANCER_CLINICAL
 
-            if detected_types:
-                primary_type = detected_types[0]['name']
+            if cancer_assessment['detected_types']:
+                primary_type = cancer_assessment['detected_types'][0]['name']
+            elif cancer_assessment['model_prediction']:
+                primary_type = cancer_assessment['model_prediction']['class_name']
             else:
-                mal_kw = [e['keyword'] for e in cent if e['keyword'] in MALIGNANT_KWS]
-                primary_type = mal_kw[0].capitalize() if mal_kw else 'General'
+                primary_type = 'General'
 
             if primary_type in CANCER_CLINICAL:
                 c_clinical = get_cancer_clinical(primary_type)
 
+            # For LOW risk, use benign clinical info
+            if cancer_assessment['risk_level'] == 'LOW' and 'Benign' in CANCER_CLINICAL:
+                c_clinical = get_cancer_clinical('Benign')
+
             cancer_result = {
                 'status': 'determined',
-                'risk_level': rl,
-                'risk_color': rc,
-                'summary': sm,
-                'entities': cent,
-                'entity_count': len(cent),
-                'detected_types': detected_types,
-                'primary_type': detected_types[0] if detected_types else None,
-                'staging': staging,
-                'elevated_markers': elevated_markers,
+                'risk_level': cancer_assessment['risk_level'],
+                'risk_color': cancer_assessment['risk_color'],
+                'summary': cancer_assessment['summary'],
+                'entities': cancer_assessment['entities'],
+                'entity_count': cancer_assessment['entity_count'],
+                'detected_types': cancer_assessment['detected_types'],
+                'primary_type': cancer_assessment['detected_types'][0] if cancer_assessment['detected_types'] else None,
+                'staging': cancer_assessment['staging'],
+                'elevated_markers': cancer_assessment['elevated_markers'],
+                'text_score': cancer_assessment['text_score'],
+                'combined_score': cancer_assessment['combined_score'],
+                'structured_features_found': cancer_assessment['structured_features_found'],
+                'model_prediction': cancer_assessment['model_prediction'],
                 'treatment': c_clinical['treatment'],
                 'suggestion': c_clinical['suggestion'],
                 'confirm_test': c_clinical['confirm_test'],
             }
 
-        # -------------------- AUTOIMMUNE --------------------
+        # ────────────────── AUTOIMMUNE (unchanged logic) ──────────────────
         found = extract_autoimmune_features(doc_text)
-
         rule_pred = detect_autoimmune_rule_based(found)
 
         if rule_pred:
             ai_clinical = get_autoimmune_clinical(rule_pred["disease"])
-
             autoimmune_result = {
                 'status': 'determined',
                 'prediction': rule_pred["disease"],
@@ -752,27 +1181,21 @@ def cancer_predict_document():
                 'suggestion': ai_clinical['suggestion'],
                 'confirm_test': ai_clinical['confirm_test']
             }
-
         else:
-            # fallback to ML model
             fv = np.zeros(len(AI_FEATURES))
-
             try:
-                pred  = ai_model.predict(fv.reshape(1,-1))[0]
-                proba = ai_model.predict_proba(fv.reshape(1,-1))[0]
-
+                pred  = ai_model.predict(fv.reshape(1, -1))[0]
+                proba = ai_model.predict_proba(fv.reshape(1, -1))[0]
                 ai_clinical = get_autoimmune_clinical(pred)
-
                 autoimmune_result = {
                     'status': 'determined',
                     'prediction': pred,
-                    'confidence': float(max(proba)*100),
+                    'confidence': float(max(proba) * 100),
                     'found_params': found,
                     'treatment': ai_clinical['treatment'],
                     'suggestion': ai_clinical['suggestion'],
                     'confirm_test': ai_clinical['confirm_test']
                 }
-
             except:
                 autoimmune_result = {
                     'status': 'undetermined',
@@ -780,7 +1203,7 @@ def cancer_predict_document():
                     'found_params': found
                 }
 
-        # -------------------- FINAL RESPONSE --------------------
+        # ────────────────── FINAL RESPONSE ──────────────────
         return jsonify({
             'cancer': cancer_result,
             'autoimmune': autoimmune_result,
@@ -790,21 +1213,55 @@ def cancer_predict_document():
 
     except RuntimeError as e:
         return jsonify({'error': str(e)}), 500
-
     except Exception as e:
         return jsonify({'error': f'Processing failed: {str(e)}'}), 500
+
+
 @app.route('/cancer/predict-manual', methods=['POST'])
 def cancer_predict_manual():
+    """
+    Manual feature input — now feeds the CORRECT structured features
+    to your 9-column trained model.
+    """
     data = request.get_json()
     try:
-        mi,si,tx,cs,ch,sy = float(data.get('mean_intensity',.5)),float(data.get('std_intensity',.1)),float(data.get('texture',.5)),float(data.get('cell_size',.5)),float(data.get('cell_shape',.5)),float(data.get('symmetry',.5))
-        np.random.seed(42)
-        f = np.clip((np.random.normal(mi,max(si,.001),1280)+np.sin(np.linspace(0,tx*10*np.pi,1280))*.1+np.random.normal(0,(1-ch)*.2,1280)+np.cos(np.linspace(0,(1-sy)*np.pi,1280))*.05)*cs,0,1).reshape(1,-1)
-        feat = scaler.transform(f); pred = rf_model.predict(feat)[0]; proba = rf_model.predict_proba(feat)[0]
+        # Build feature vector matching your training columns
+        fv = []
+        for col in CANCER_MODEL_COLUMNS:
+            # Map form field names to model column names
+            field_map = {
+                'Age': 'age', 'Gender': 'gender', 'BMI': 'bmi',
+                'Smoking': 'smoking', 'GeneticRisk': 'genetic_risk',
+                'PhysicalActivity': 'physical_activity',
+                'AlcoholIntake': 'alcohol_intake',
+                'CancerHistory': 'cancer_history',
+            }
+            form_key = field_map.get(col, col.lower())
+            fv.append(float(data.get(form_key, 0)))
+
+        fv = np.array(fv).reshape(1, -1)
+        feat  = scaler.transform(fv)
+        pred  = rf_model.predict(feat)[0]
+        proba = rf_model.predict_proba(feat)[0]
         cname = class_names[pred]
         clinical = get_cancer_clinical(cname)
-        return jsonify({'prediction':int(pred),'class_name':cname,'is_malignant':bool(pred!=0),'confidence':float(max(proba)*100),'probabilities':[{'class':class_names[i],'probability':float(proba[i]*100),'is_malignant':i!=0} for i in range(len(class_names))],'treatment':clinical['treatment'],'suggestion':clinical['suggestion'],'confirm_test':clinical['confirm_test']})
-    except Exception as e: return jsonify({'error':str(e)}),500
+
+        return jsonify({
+            'prediction': int(pred),
+            'class_name': cname,
+            'is_malignant': bool(pred != 0),
+            'confidence': float(max(proba) * 100),
+            'probabilities': [
+                {'class': class_names[i], 'probability': float(proba[i]*100), 'is_malignant': i != 0}
+                for i in range(len(class_names))
+            ],
+            'treatment': clinical['treatment'],
+            'suggestion': clinical['suggestion'],
+            'confirm_test': clinical['confirm_test']
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     print("\n  Clarity Vision running at http://localhost:5000\n")
