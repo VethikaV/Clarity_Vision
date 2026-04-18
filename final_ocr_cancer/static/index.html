@@ -65,7 +65,6 @@ body::after {
 
 .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 32px; }
 
-/* NAV */
 nav {
   padding: 0;
   border-bottom: 1px solid var(--border);
@@ -159,12 +158,10 @@ nav {
 }
 @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.4} }
 
-/* PAGES */
 .page { display: none; padding: 56px 0 100px; animation: fadeUp .4s ease; }
 .page.active { display: block; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-/* HERO */
 .hero {
   text-align: center;
   margin-bottom: 64px;
@@ -206,7 +203,6 @@ nav {
   font-weight: 300;
 }
 
-/* HOME CARDS */
 .home-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -316,7 +312,6 @@ nav {
 }
 .home-card:hover .hc-arrow { opacity: 1; }
 
-/* SECTION HEADER */
 .section-header {
   display: flex;
   align-items: flex-end;
@@ -330,7 +325,6 @@ nav {
 .section-title em { font-style: italic; color: var(--accent); }
 .section-sub { font-size: 13px; color: var(--dim); max-width: 380px; text-align: right; line-height: 1.6; font-weight: 300; }
 
-/* TABS */
 .tab-bar {
   display: flex;
   gap: 0;
@@ -358,11 +352,9 @@ nav {
 .sub-panel { display: none; }
 .sub-panel.active { display: block; animation: fadeUp .3s ease; }
 
-/* TWO COLUMN */
 .two-col { display: grid; grid-template-columns: 1fr 1.1fr; gap: 28px; align-items: start; }
 @media(max-width:700px) { .two-col, .home-grid, .slider-grid { grid-template-columns: 1fr !important; } }
 
-/* UPLOAD ZONE */
 .upload-card {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -432,7 +424,6 @@ nav {
   letter-spacing: 0.8px;
 }
 
-/* Preview */
 .preview-box { margin-top: 14px; display: none; }
 .preview-box.show { display: block; }
 
@@ -470,7 +461,6 @@ nav {
 }
 .prev-rm:hover { border-color: var(--danger); color: var(--danger); }
 
-/* FORM ELEMENTS */
 .field-card {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -510,7 +500,6 @@ select {
 select:focus { border-color: var(--accent); }
 select option { background: var(--surf3); }
 
-/* BUTTONS */
 .btn-primary {
   width: 100%;
   padding: 14px;
@@ -557,7 +546,6 @@ select option { background: var(--surf3); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* SLIDERS */
 .slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
 
 .sl-card {
@@ -604,7 +592,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 
 .sl-val { font-family: var(--mono); font-size: 12px; min-width: 34px; text-align: right; color: var(--text2); }
 
-/* RESULTS PANEL */
 .result-box { display: none; }
 .result-box.show { display: block; animation: fadeUp .4s ease; }
 
@@ -674,7 +661,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 .vrd-conf { font-family: var(--mono); font-size: 11px; color: var(--dim); }
 .vrd-conf strong { color: var(--text2); font-weight: 500; }
 
-/* Probability bars */
 .prob-block {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -699,7 +685,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 .prob-fill.safe   { background: linear-gradient(90deg, var(--safe),  #60e8c0); }
 .prob-pct { font-family: var(--mono); font-size: 11px; min-width: 42px; text-align: right; color: var(--text2); }
 
-/* Entities */
 .entity-block {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -735,7 +720,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 .entity-ctx { font-size: 12px; color: var(--dim); line-height: 1.6; font-weight: 300; }
 .entity-kw-hi { color: var(--warn); font-weight: 500; }
 
-/* OCR output */
 .ocr-block {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -783,7 +767,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 .ocr-text::-webkit-scrollbar-track { background: var(--surf); }
 .ocr-text::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* Stat pills */
 .stat-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .stat-pill {
   font-family: var(--mono);
@@ -796,7 +779,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 }
 .stat-pill strong { color: var(--text2); font-weight: 500; }
 
-/* Error */
 .err-bar {
   background: rgba(224,90,114,.07);
   border: 1px solid rgba(224,90,114,.2);
@@ -810,7 +792,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 }
 .err-bar.show { display: block; }
 
-/* Loading */
 .loading { text-align: center; padding: 60px 32px; display: none; }
 .loading.show { display: block; }
 
@@ -847,7 +828,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
   text-transform: uppercase;
 }
 
-/* Placeholder */
 .placeholder-card {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -859,7 +839,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 .ph-title { font-family: var(--serif); font-size: 20px; font-weight: 300; color: var(--dim); margin-bottom: 6px; }
 .ph-sub { font-size: 12px; color: var(--dim); font-weight: 300; opacity: 0.7; }
 
-/* Clinical info cards */
 .clinical-block {
   margin-top: 14px;
   border: 1px solid var(--border2);
@@ -898,7 +877,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
   flex: 1;
 }
 
-/* Cancer type cards */
 .cancer-types-block {
   background: var(--surf);
   border: 1px solid var(--border);
@@ -957,7 +935,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 .ct-fill.warn { background: linear-gradient(90deg, var(--warn), #f0c890); }
 .ct-pct { font-family: var(--mono); font-size: 10px; color: var(--text2); min-width: 36px; text-align: right; }
 
-/* Staging & markers badges */
 .meta-row {
   display: flex;
   gap: 10px;
@@ -979,7 +956,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
 .meta-badge.marker-elevated { background: rgba(224,90,114,.09); border: 1px solid rgba(224,90,114,.25); color: var(--danger); }
 .meta-badge.marker-normal { background: rgba(45,212,160,.07); border: 1px solid rgba(45,212,160,.2); color: var(--safe); }
 
-/* Section block label */
 .section-block-label {
   font-family: var(--mono);
   font-size: 9px;
@@ -991,7 +967,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(77,18
   border-bottom: 1px solid var(--border);
 }
 
-/* Footer */
 footer {
   border-top: 1px solid var(--border);
   padding: 24px 0;
@@ -1041,7 +1016,7 @@ footer {
 
 <div class="wrap">
 
-<!-- HOME -->
+<!-- ═══════════════════ HOME ═══════════════════ -->
 <div class="page active" id="page-home">
   <div class="hero">
     <div class="hero-eyebrow">Medical AI Platform</div>
@@ -1092,7 +1067,7 @@ footer {
   </div>
 </div>
 
-<!-- OCR PAGE -->
+<!-- ═══════════════════ OCR PAGE ═══════════════════ -->
 <div class="page" id="page-ocr">
   <div class="section-header">
     <div>
@@ -1174,7 +1149,7 @@ footer {
   </div>
 </div>
 
-<!-- CANCER PAGE -->
+<!-- ═══════════════════ CANCER PAGE ═══════════════════ -->
 <div class="page" id="page-cancer">
   <div class="section-header">
     <div>
@@ -1276,32 +1251,120 @@ footer {
     </div>
   </div>
 
-  <!-- Manual -->
+  <!-- Manual Parameters -->
   <div class="sub-panel" id="ctab-manual">
     <div class="two-col">
       <div>
-        <div class="slider-grid">
-          <div class="sl-card"><span class="sl-name">Mean Intensity</span><div class="sl-desc">Average pixel brightness (0 = dark, 1 = bright)</div><div class="sl-row"><input type="range" id="sl_mean" min="0" max="1" step=".01" value=".5" oninput="slv('sl_mean','sv_mean')"><span class="sl-val" id="sv_mean">0.50</span></div></div>
-          <div class="sl-card"><span class="sl-name">Std Deviation</span><div class="sl-desc">Intensity variation — higher implies irregular texture</div><div class="sl-row"><input type="range" id="sl_std" min="0" max=".5" step=".01" value=".1" oninput="slv('sl_std','sv_std')"><span class="sl-val" id="sv_std">0.10</span></div></div>
-          <div class="sl-card"><span class="sl-name">Texture Score</span><div class="sl-desc">Surface pattern density across the cell region</div><div class="sl-row"><input type="range" id="sl_tex" min="0" max="1" step=".01" value=".3" oninput="slv('sl_tex','sv_tex')"><span class="sl-val" id="sv_tex">0.30</span></div></div>
-          <div class="sl-card"><span class="sl-name">Cell Size</span><div class="sl-desc">Relative size against the normal reference range</div><div class="sl-row"><input type="range" id="sl_size" min="0" max="1" step=".01" value=".5" oninput="slv('sl_size','sv_size')"><span class="sl-val" id="sv_size">0.50</span></div></div>
-          <div class="sl-card"><span class="sl-name">Shape Regularity</span><div class="sl-desc">Morphological uniformity — 1 = round, 0 = irregular</div><div class="sl-row"><input type="range" id="sl_shape" min="0" max="1" step=".01" value=".8" oninput="slv('sl_shape','sv_shape')"><span class="sl-val" id="sv_shape">0.80</span></div></div>
-          <div class="sl-card"><span class="sl-name">Symmetry Index</span><div class="sl-desc">Bilateral symmetry — 1 = fully symmetric</div><div class="sl-row"><input type="range" id="sl_sym" min="0" max="1" step=".01" value=".7" oninput="slv('sl_sym','sv_sym')"><span class="sl-val" id="sv_sym">0.70</span></div></div>
+        <!-- Cancer Parameters -->
+        <div class="field-card" style="margin-bottom:20px">
+          <span class="upload-label">Cancer Risk Parameters</span>
+          <div class="slider-grid">
+            <div class="sl-card">
+              <span class="sl-name">Age</span>
+              <div class="sl-desc">Patient age in years</div>
+              <div class="sl-row">
+                <input type="range" id="sl_age" min="1" max="100" step="1" value="45" oninput="slv('sl_age','sv_age')">
+                <span class="sl-val" id="sv_age">45</span>
+              </div>
+            </div>
+            <div class="sl-card">
+              <span class="sl-name">BMI</span>
+              <div class="sl-desc">Body Mass Index (15–50)</div>
+              <div class="sl-row">
+                <input type="range" id="sl_bmi" min="15" max="50" step="0.1" value="24.5" oninput="slv('sl_bmi','sv_bmi')">
+                <span class="sl-val" id="sv_bmi">24.5</span>
+              </div>
+            </div>
+            <div class="sl-card">
+              <span class="sl-name">Smoking</span>
+              <div class="sl-desc">0 = Never · 1 = Heavy smoker</div>
+              <div class="sl-row">
+                <input type="range" id="sl_smoking" min="0" max="1" step="0.01" value="0" oninput="slv('sl_smoking','sv_smoking')">
+                <span class="sl-val" id="sv_smoking">0.00</span>
+              </div>
+            </div>
+            <div class="sl-card">
+              <span class="sl-name">Genetic Risk</span>
+              <div class="sl-desc">0 = No family history · 1 = Strong hereditary risk</div>
+              <div class="sl-row">
+                <input type="range" id="sl_genetic" min="0" max="1" step="0.01" value="0" oninput="slv('sl_genetic','sv_genetic')">
+                <span class="sl-val" id="sv_genetic">0.00</span>
+              </div>
+            </div>
+            <div class="sl-card" style="grid-column: 1 / -1;">
+              <span class="sl-name">Physical Activity</span>
+              <div class="sl-desc">Hours per week (0–10)</div>
+              <div class="sl-row">
+                <input type="range" id="sl_activity" min="0" max="10" step="0.1" value="5" oninput="slv('sl_activity','sv_activity')">
+                <span class="sl-val" id="sv_activity">5.0</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Autoimmune Parameters -->
+        <div class="field-card" style="margin-bottom:20px">
+          <span class="upload-label">Autoimmune Markers</span>
+          <div class="slider-grid">
+            <div class="sl-card">
+              <span class="sl-name">ANA Titre</span>
+              <div class="sl-desc">Antinuclear antibody (0 = negative, 3 = strong positive)</div>
+              <div class="sl-row">
+                <input type="range" id="sl_ana" min="0" max="3" step="0.1" value="0" oninput="slv('sl_ana','sv_ana')">
+                <span class="sl-val" id="sv_ana">0.0</span>
+              </div>
+            </div>
+            <div class="sl-card">
+              <span class="sl-name">ESR</span>
+              <div class="sl-desc">Erythrocyte sedimentation rate (mm/hr, 0–120)</div>
+              <div class="sl-row">
+                <input type="range" id="sl_esr" min="0" max="120" step="1" value="10" oninput="slv('sl_esr','sv_esr')">
+                <span class="sl-val" id="sv_esr">10</span>
+              </div>
+            </div>
+            <div class="sl-card">
+              <span class="sl-name">CRP</span>
+              <div class="sl-desc">C-reactive protein (mg/L, 0–100)</div>
+              <div class="sl-row">
+                <input type="range" id="sl_crp" min="0" max="100" step="0.5" value="3" oninput="slv('sl_crp','sv_crp')">
+                <span class="sl-val" id="sv_crp">3.0</span>
+              </div>
+            </div>
+            <div class="sl-card">
+              <span class="sl-name">Rheumatoid Factor</span>
+              <div class="sl-desc">RF level (0 = negative, 3 = strong positive)</div>
+              <div class="sl-row">
+                <input type="range" id="sl_rf" min="0" max="3" step="0.1" value="0" oninput="slv('sl_rf','sv_rf')">
+                <span class="sl-val" id="sv_rf">0.0</span>
+              </div>
+            </div>
+            <div class="sl-card" style="grid-column: 1 / -1;">
+              <span class="sl-name">Anti-TPO</span>
+              <div class="sl-desc">Thyroid peroxidase antibody (0 = negative, 3 = strong positive)</div>
+              <div class="sl-row">
+                <input type="range" id="sl_tpo" min="0" max="3" step="0.1" value="0" oninput="slv('sl_tpo','sv_tpo')">
+                <span class="sl-val" id="sv_tpo">0.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <button class="btn-primary" id="cm-btn" onclick="runCancerManual()">
           <div class="spinner" id="cm-spin"></div>
-          <span>Run Classification</span>
+          <span>Run Full Analysis</span>
         </button>
         <div class="err-bar" id="cm-err"></div>
       </div>
+
       <div>
-        <div class="loading" id="cm-loading"><div class="pulse"><div class="pulse-dot"></div></div><div class="loading-txt">Running Model</div></div>
+        <div class="loading" id="cm-loading"><div class="pulse"><div class="pulse-dot"></div></div><div class="loading-txt">Running Models</div></div>
         <div class="result-box" id="cm-result"></div>
-        <div class="placeholder-card" id="cm-placeholder"><div class="ph-icon">⚗️</div><div class="ph-title">Configure parameters</div><div class="ph-sub">Adjust the sliders and run classification</div></div>
+        <div class="placeholder-card" id="cm-placeholder"><div class="ph-icon">⚗️</div><div class="ph-title">Configure parameters</div><div class="ph-sub">Adjust sliders and run analysis</div></div>
       </div>
     </div>
   </div>
-</div>
+
+</div><!-- /page-cancer -->
 
 <footer>
   <div class="footer-brand">Clarity <em>Vision</em></div>
@@ -1332,7 +1395,9 @@ function switchCancerTab(name) {
 }
 
 function slv(inp, disp) {
-  document.getElementById(disp).textContent = parseFloat(document.getElementById(inp).value).toFixed(2);
+  const v = parseFloat(document.getElementById(inp).value);
+  const step = parseFloat(document.getElementById(inp).step);
+  document.getElementById(disp).textContent = step >= 1 ? String(Math.round(v)) : v.toFixed(step < 0.1 ? 2 : 1);
 }
 
 /* ══════════════════════════════════════
@@ -1356,27 +1421,48 @@ function ocrFileSelect(f) {
   ocrFile = f;
   const isImg = f.type.startsWith('image/');
   if (isImg) {
-    const r = new FileReader(); r.onload = e => { document.getElementById('ocr-prev-img').src = e.target.result; document.getElementById('ocr-prev-img').style.display = 'block'; document.getElementById('ocr-prev-icon').style.display = 'none'; }; r.readAsDataURL(f);
-  } else { document.getElementById('ocr-prev-img').style.display = 'none'; document.getElementById('ocr-prev-icon').style.display = 'flex'; }
+    const r = new FileReader();
+    r.onload = e => {
+      document.getElementById('ocr-prev-img').src = e.target.result;
+      document.getElementById('ocr-prev-img').style.display = 'block';
+      document.getElementById('ocr-prev-icon').style.display = 'none';
+    };
+    r.readAsDataURL(f);
+  } else {
+    document.getElementById('ocr-prev-img').style.display = 'none';
+    document.getElementById('ocr-prev-icon').style.display = 'flex';
+  }
   document.getElementById('ocr-prev-name').textContent = f.name;
   document.getElementById('ocr-prev-size').textContent = (f.size/1024).toFixed(1) + ' KB';
   document.getElementById('ocr-prev').classList.add('show');
   document.getElementById('ocr-btn').disabled = false;
   document.getElementById('ocr-result').classList.remove('show');
 }
-function clearOcrFile() { ocrFile = null; document.getElementById('ocr-prev').classList.remove('show'); document.getElementById('ocr-btn').disabled = true; document.getElementById('ocr-file').value = ''; }
+function clearOcrFile() {
+  ocrFile = null;
+  document.getElementById('ocr-prev').classList.remove('show');
+  document.getElementById('ocr-btn').disabled = true;
+  document.getElementById('ocr-file').value = '';
+}
 
 let ciFile = null;
 function ciFileSelect(f) {
   ciFile = f;
-  const r = new FileReader(); r.onload = e => { document.getElementById('ci-prev-img').src = e.target.result; }; r.readAsDataURL(f);
+  const r = new FileReader();
+  r.onload = e => { document.getElementById('ci-prev-img').src = e.target.result; };
+  r.readAsDataURL(f);
   document.getElementById('ci-prev-name').textContent = f.name;
   document.getElementById('ci-prev-size').textContent = (f.size/1024).toFixed(1) + ' KB';
   document.getElementById('ci-prev').classList.add('show');
   document.getElementById('ci-btn').disabled = false;
   document.getElementById('ci-result').classList.remove('show');
 }
-function clearCiFile() { ciFile = null; document.getElementById('ci-prev').classList.remove('show'); document.getElementById('ci-btn').disabled = true; document.getElementById('ci-file').value = ''; }
+function clearCiFile() {
+  ciFile = null;
+  document.getElementById('ci-prev').classList.remove('show');
+  document.getElementById('ci-btn').disabled = true;
+  document.getElementById('ci-file').value = '';
+}
 
 let cdFile = null;
 function cdFileSelect(f) {
@@ -1387,19 +1473,24 @@ function cdFileSelect(f) {
   document.getElementById('cd-btn').disabled = false;
   document.getElementById('cd-result').classList.remove('show');
 }
-function clearCdFile() { cdFile = null; document.getElementById('cd-prev').classList.remove('show'); document.getElementById('cd-btn').disabled = true; document.getElementById('cd-file').value = ''; }
+function clearCdFile() {
+  cdFile = null;
+  document.getElementById('cd-prev').classList.remove('show');
+  document.getElementById('cd-btn').disabled = true;
+  document.getElementById('cd-file').value = '';
+}
 
 /* ══════════════════════════════════════
    UI HELPERS
 ══════════════════════════════════════ */
 function setLoading(prefix, on) {
-  document.getElementById(prefix+'-loading').classList.toggle('show', on);
-  const ph = document.getElementById(prefix+'-placeholder');
+  document.getElementById(prefix + '-loading').classList.toggle('show', on);
+  const ph = document.getElementById(prefix + '-placeholder');
   if (ph) ph.style.display = on ? 'none' : '';
 }
 function setErr(id, msg) {
   const el = document.getElementById(id);
-  el.textContent = msg ? '⚠  ' + msg : '';
+  el.textContent = msg ? '\u26A0  ' + msg : '';
   el.classList.toggle('show', !!msg);
 }
 function setBtnLoading(btnId, spinId, on) {
@@ -1407,13 +1498,19 @@ function setBtnLoading(btnId, spinId, on) {
   document.getElementById(spinId).style.display = on ? 'block' : 'none';
 }
 
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 function copyText(id) {
   const el = document.getElementById(id);
   navigator.clipboard.writeText(el.textContent).then(() => {
     const btn = el.closest('.ocr-block').querySelector('.copy-btn');
-    if (btn) { const t = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = t, 2000); }
+    if (btn) {
+      const t = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = t, 2000);
+    }
   });
 }
 
@@ -1447,7 +1544,7 @@ function clinicalHTML(data) {
 }
 
 /* ══════════════════════════════════════
-   CANCER RESULT HTML (image / manual)
+   CANCER RESULT HTML (for image mode)
 ══════════════════════════════════════ */
 function cancerResultHTML(data) {
   const c     = data.is_malignant ? 'danger' : 'safe';
@@ -1456,9 +1553,9 @@ function cancerResultHTML(data) {
 
   const bars = data.probabilities.map(p => {
     const bc  = p.is_malignant ? 'danger' : 'safe';
-    const uid = 'b_' + Math.random().toString(36).substr(2,6);
+    const uid = 'b_' + Math.random().toString(36).substr(2, 6);
     return `<div class="prob-row">
-      <div class="prob-cls">${p.class}</div>
+      <div class="prob-cls">${escHtml(p.class)}</div>
       <div class="prob-track"><div class="prob-fill ${bc}" id="${uid}" data-w="${p.probability.toFixed(1)}%"></div></div>
       <div class="prob-pct">${p.probability.toFixed(1)}%</div>
     </div>`;
@@ -1470,7 +1567,7 @@ function cancerResultHTML(data) {
         <div class="vrd-icon ${c}" style="font-size:20px;font-family:var(--mono);font-weight:500">${icon}</div>
         <div>
           <div class="vrd-status ${c}">${label}</div>
-          <div class="vrd-name">${data.class_name}</div>
+          <div class="vrd-name">${escHtml(data.class_name)}</div>
           <div class="vrd-conf">Confidence score — <strong>${data.confidence.toFixed(1)}%</strong></div>
         </div>
       </div>
@@ -1487,19 +1584,24 @@ function cancerResultHTML(data) {
 ══════════════════════════════════════ */
 async function runOCR() {
   if (!ocrFile) return;
-  setBtnLoading('ocr-btn','ocr-spin',true);
+  setBtnLoading('ocr-btn', 'ocr-spin', true);
   setLoading('ocr', true);
-  setErr('ocr-err','');
+  setErr('ocr-err', '');
   document.getElementById('ocr-result').classList.remove('show');
   document.getElementById('ocr-placeholder').style.display = 'none';
   try {
-    const fd = new FormData(); fd.append('file', ocrFile); fd.append('language', document.getElementById('ocr-lang').value);
-    const res = await fetch('/ocr/process', { method:'POST', body:fd });
+    const fd = new FormData();
+    fd.append('file', ocrFile);
+    fd.append('language', document.getElementById('ocr-lang').value);
+    const res = await fetch('/ocr/process', { method: 'POST', body: fd });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Server error');
 
     const entHTML = data.entities.length
-      ? data.entities.map(e => { const ctx = e.context.replace(new RegExp(e.keyword,'gi'), m => `<span class="entity-kw-hi">${m}</span>`); return `<div class="entity-item"><div class="entity-kw">${e.keyword}</div><div class="entity-ctx">${ctx}</div></div>`; }).join('')
+      ? data.entities.map(e => {
+          const ctx = e.context.replace(new RegExp(e.keyword, 'gi'), m => `<span class="entity-kw-hi">${m}</span>`);
+          return `<div class="entity-item"><div class="entity-kw">${escHtml(e.keyword)}</div><div class="entity-ctx">${ctx}</div></div>`;
+        }).join('')
       : '<div style="font-size:12px;color:var(--dim);font-weight:300">No oncological keywords identified in this document.</div>';
 
     const lang = document.getElementById('ocr-lang').value;
@@ -1510,7 +1612,7 @@ async function runOCR() {
       <div class="stat-pills">
         <div class="stat-pill">Words <strong>${data.word_count}</strong></div>
         <div class="stat-pill">Keywords <strong>${data.entity_count}</strong></div>
-        <div class="stat-pill">Language <strong>${data.target_language}</strong></div>
+        <div class="stat-pill">Language <strong>${escHtml(data.target_language)}</strong></div>
       </div>
       <div class="ocr-block">
         <div class="ocr-head">Extracted Text <button class="copy-btn" onclick="copyText('ocr-raw')">Copy</button></div>
@@ -1525,11 +1627,11 @@ async function runOCR() {
         ${entHTML}
       </div>`;
     container.classList.add('show');
-  } catch(e) {
+  } catch (e) {
     setErr('ocr-err', e.message);
     document.getElementById('ocr-placeholder').style.display = '';
   } finally {
-    setBtnLoading('ocr-btn','ocr-spin',false);
+    setBtnLoading('ocr-btn', 'ocr-spin', false);
     setLoading('ocr', false);
   }
 }
@@ -1539,44 +1641,53 @@ async function runOCR() {
 ══════════════════════════════════════ */
 async function runCancerImage() {
   if (!ciFile) return;
-  setBtnLoading('ci-btn','ci-spin',true); setLoading('ci',true); setErr('ci-err','');
+  setBtnLoading('ci-btn', 'ci-spin', true);
+  setLoading('ci', true);
+  setErr('ci-err', '');
   document.getElementById('ci-result').classList.remove('show');
   document.getElementById('ci-placeholder').style.display = 'none';
   try {
-    const fd = new FormData(); fd.append('file', ciFile);
-    const res = await fetch('/cancer/predict-image', { method:'POST', body:fd });
-    const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Server error');
-    const c = document.getElementById('ci-result'); c.innerHTML = cancerResultHTML(data); c.classList.add('show'); animateBars(c);
-  } catch(e) { setErr('ci-err', e.message); document.getElementById('ci-placeholder').style.display = ''; }
-  finally { setBtnLoading('ci-btn','ci-spin',false); setLoading('ci',false); }
+    const fd = new FormData();
+    fd.append('file', ciFile);
+    const res = await fetch('/cancer/predict-image', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
+    const c = document.getElementById('ci-result');
+    c.innerHTML = cancerResultHTML(data);
+    c.classList.add('show');
+    animateBars(c);
+  } catch (e) {
+    setErr('ci-err', e.message);
+    document.getElementById('ci-placeholder').style.display = '';
+  } finally {
+    setBtnLoading('ci-btn', 'ci-spin', false);
+    setLoading('ci', false);
+  }
 }
 
-/* ══════════════════════════════════════
-   CANCER — Document (ALIGNED WITH app.py)
+/* ═���════════════════════════════════════
+   CANCER — Document
 ══════════════════════════════════════ */
 async function runCancerDocument() {
   if (!cdFile) return;
-
-  setBtnLoading('cd-btn','cd-spin',true);
-  setLoading('cd',true);
-  setErr('cd-err','');
+  setBtnLoading('cd-btn', 'cd-spin', true);
+  setLoading('cd', true);
+  setErr('cd-err', '');
   document.getElementById('cd-result').classList.remove('show');
   document.getElementById('cd-placeholder').style.display = 'none';
 
   try {
     const fd = new FormData();
     fd.append('file', cdFile);
-
-    const res  = await fetch('/cancer/predict-document', { method:'POST', body:fd });
+    const res = await fetch('/cancer/predict-document', { method: 'POST', body: fd });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Server error');
 
     const cancer = data.cancer;
     const ai     = data.autoimmune;
 
-    // ── CANCER SECTION ───────────────────────────────────────────
+    // ── CANCER SECTION ──
     let cancerHTML = '';
-
     if (cancer.status === 'undetermined') {
       cancerHTML = `
         <div class="section-block-label">Cancer Assessment</div>
@@ -1591,38 +1702,32 @@ async function runCancerDocument() {
           </div>
         </div>`;
     } else {
-      const c      = cancer.risk_color;
-      const icons  = {danger:'⚠', safe:'✓', warn:'◎', neutral:'?'};
+      const cc     = cancer.risk_color;
+      const icons  = { danger: '⚠', safe: '✓', warn: '◎', neutral: '?' };
       const labels = {
         danger: 'High Risk — Malignancy Indicators Present',
         safe:   'Low Risk — Benign Findings',
         warn:   'Moderate Risk — Further Evaluation Recommended'
       };
 
-      // Entity list
       const entHTML = cancer.entities.length
         ? cancer.entities.map(e => {
-            const ctx = e.context.replace(new RegExp(e.keyword,'gi'), m => `<span class="entity-kw-hi">${m}</span>`);
-            return `<div class="entity-item"><div class="entity-kw">${e.keyword}</div><div class="entity-ctx">${ctx}</div></div>`;
+            const ctx = e.context.replace(new RegExp(e.keyword, 'gi'), m => `<span class="entity-kw-hi">${m}</span>`);
+            return `<div class="entity-item"><div class="entity-kw">${escHtml(e.keyword)}</div><div class="entity-ctx">${ctx}</div></div>`;
           }).join('')
         : '<div style="font-size:12px;color:var(--dim);font-weight:300">No oncological keywords identified.</div>';
 
-      // Staging & elevated markers
       let metaHTML = '';
-      if (cancer.staging) {
-        metaHTML += `<div class="meta-badge stage">📋 ${escHtml(cancer.staging)}</div>`;
-      }
+      if (cancer.staging) metaHTML += `<div class="meta-badge stage">📋 ${escHtml(cancer.staging)}</div>`;
       (cancer.elevated_markers || []).forEach(m => {
         metaHTML += `<div class="meta-badge marker-elevated">🔺 ${escHtml(m.marker)}: ${m.value} (ref &lt;${m.threshold})</div>`;
       });
       const metaRowHTML = metaHTML ? `<div class="meta-row">${metaHTML}</div>` : '';
 
-      // Cancer type cards
       let typesHTML = '';
       if (cancer.detected_types && cancer.detected_types.length > 0) {
         const primary = cancer.detected_types[0];
         const others  = cancer.detected_types.slice(1);
-
         const primaryEv = (primary.evidence || []).map(ev =>
           `<div style="margin-top:5px;font-size:11px;color:var(--dim);line-height:1.5">
             <span style="color:var(--warn);font-family:var(--mono);font-size:10px;font-weight:500">${escHtml(ev.pattern)}</span>
@@ -1631,9 +1736,7 @@ async function runCancerDocument() {
 
         typesHTML = `
           <div class="cancer-types-block">
-            <div class="cancer-types-head">
-              <span>Identified Cancer Types — ${cancer.detected_types.length} detected</span>
-            </div>
+            <div class="cancer-types-head"><span>Identified Cancer Types — ${cancer.detected_types.length} detected</span></div>
             <div class="cancer-type-primary">
               <div class="ct-name">${escHtml(primary.name)}</div>
               <div class="ct-icd">ICD-10: ${escHtml(primary.icd10)}</div>
@@ -1659,12 +1762,12 @@ async function runCancerDocument() {
 
       cancerHTML = `
         <div class="section-block-label">Cancer Assessment</div>
-        <div class="result-verdict ${c}">
+        <div class="result-verdict ${cc}">
           <div class="vrd-top">
-            <div class="vrd-icon ${c}" style="font-size:18px;font-family:var(--mono);font-weight:500">${icons[c]}</div>
+            <div class="vrd-icon ${cc}" style="font-size:18px;font-family:var(--mono);font-weight:500">${icons[cc]}</div>
             <div>
-              <div class="vrd-status ${c}">${labels[c]}</div>
-              <div class="vrd-name">Risk Level: ${cancer.risk_level}${cancer.primary_type ? ' · ' + escHtml(cancer.primary_type.name) : ''}</div>
+              <div class="vrd-status ${cc}">${labels[cc]}</div>
+              <div class="vrd-name">Risk Level: ${escHtml(cancer.risk_level)}${cancer.primary_type ? ' · ' + escHtml(cancer.primary_type.name) : ''}</div>
               <div class="vrd-conf" style="margin-top:6px;font-size:12px;color:var(--text2);font-weight:300">${escHtml(cancer.summary)}</div>
             </div>
           </div>
@@ -1678,9 +1781,8 @@ async function runCancerDocument() {
         ${clinicalHTML(cancer)}`;
     }
 
-    // ── AUTOIMMUNE SECTION ───────────────────────────────────────
+    // ── AUTOIMMUNE SECTION ──
     let aiHTML = '';
-
     if (ai.status === 'undetermined') {
       aiHTML = `
         <div class="section-block-label" style="margin-top:24px">Autoimmune Assessment</div>
@@ -1695,23 +1797,14 @@ async function runCancerDocument() {
           </div>
         </div>`;
     } else {
-      // Determine styling based on prediction
       const isNormal = ai.prediction === 'Normal';
       const ac       = isNormal ? 'safe' : 'warn';
       const aicon    = isNormal ? '✓' : '◎';
       const alabel   = isNormal ? 'No Autoimmune Condition Detected' : 'Autoimmune Condition Detected';
-
-      // Format confidence — integer for rule-based, float for ML
-      const confDisplay = Number.isInteger(ai.confidence)
-        ? ai.confidence + '%'
-        : parseFloat(ai.confidence).toFixed(1) + '%';
-
-      // Reason line (only present for rule-based detections)
+      const confDisplay = Number.isInteger(ai.confidence) ? ai.confidence + '%' : parseFloat(ai.confidence).toFixed(1) + '%';
       const reasonLine = ai.reason
         ? `<div class="vrd-conf" style="margin-top:4px;font-size:12px;color:var(--text2)">${escHtml(ai.reason)}</div>`
         : '';
-
-      // Extracted parameters as stat pills
       const params     = Object.entries(ai.found_params || {});
       const foundCount = params.length;
       const paramsHTML  = params.slice(0, 12).map(([k, v]) =>
@@ -1739,12 +1832,10 @@ async function runCancerDocument() {
         ${clinicalHTML(ai)}`;
     }
 
-    // ── FINAL RENDER ─────────────────────────────────────────────
+    // ── FINAL RENDER ──
     const el = document.getElementById('cd-result');
     el.innerHTML = `
-      <div class="stat-pills">
-        <div class="stat-pill">Words <strong>${data.word_count}</strong></div>
-      </div>
+      <div class="stat-pills"><div class="stat-pill">Words <strong>${data.word_count}</strong></div></div>
       ${cancerHTML}
       ${aiHTML}
       ${data.extracted_text ? `
@@ -1752,16 +1843,15 @@ async function runCancerDocument() {
           <div class="ocr-head">Document Text Preview <button class="copy-btn" onclick="copyText('cd-raw')">Copy</button></div>
           <div class="ocr-text" id="cd-raw">${escHtml(data.extracted_text)}</div>
         </div>` : ''}`;
-
     el.classList.add('show');
     animateBars(el);
 
-  } catch(e) {
+  } catch (e) {
     setErr('cd-err', e.message);
     document.getElementById('cd-placeholder').style.display = '';
   } finally {
-    setBtnLoading('cd-btn','cd-spin',false);
-    setLoading('cd',false);
+    setBtnLoading('cd-btn', 'cd-spin', false);
+    setLoading('cd', false);
   }
 }
 
@@ -1769,23 +1859,134 @@ async function runCancerDocument() {
    CANCER — Manual Parameters
 ══════════════════════════════════════ */
 async function runCancerManual() {
-  setBtnLoading('cm-btn','cm-spin',true); setLoading('cm',true); setErr('cm-err','');
+  setBtnLoading('cm-btn', 'cm-spin', true);
+  setLoading('cm', true);
+  setErr('cm-err', '');
   document.getElementById('cm-result').classList.remove('show');
   document.getElementById('cm-placeholder').style.display = 'none';
+
+  const cancerBody = {
+    age:               parseFloat(document.getElementById('sl_age').value),
+    bmi:               parseFloat(document.getElementById('sl_bmi').value),
+    smoking:           parseFloat(document.getElementById('sl_smoking').value),
+    genetic_risk:      parseFloat(document.getElementById('sl_genetic').value),
+    physical_activity: parseFloat(document.getElementById('sl_activity').value)
+  };
+
+  const aiBody = {
+    ana:               parseFloat(document.getElementById('sl_ana').value),
+    esr:               parseFloat(document.getElementById('sl_esr').value),
+    crp:               parseFloat(document.getElementById('sl_crp').value),
+    rheumatoid_factor: parseFloat(document.getElementById('sl_rf').value),
+    anti_tpo:          parseFloat(document.getElementById('sl_tpo').value)
+  };
+
   try {
-    const body = {
-      mean_intensity: document.getElementById('sl_mean').value,
-      std_intensity:  document.getElementById('sl_std').value,
-      texture:        document.getElementById('sl_tex').value,
-      cell_size:      document.getElementById('sl_size').value,
-      cell_shape:     document.getElementById('sl_shape').value,
-      symmetry:       document.getElementById('sl_sym').value,
-    };
-    const res = await fetch('/cancer/predict-manual', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Server error');
-    const c = document.getElementById('cm-result'); c.innerHTML = cancerResultHTML(data); c.classList.add('show'); animateBars(c);
-  } catch(e) { setErr('cm-err', e.message); document.getElementById('cm-placeholder').style.display = ''; }
-  finally { setBtnLoading('cm-btn','cm-spin',false); setLoading('cm',false); }
+    const [cancerRes, aiRes] = await Promise.all([
+      fetch('/cancer/predict-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cancerBody)
+      }),
+      fetch('/autoimmune/predict-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(aiBody)
+      })
+    ]);
+
+    const cancerData = await cancerRes.json();
+    const aiData     = await aiRes.json();
+
+    if (!cancerRes.ok) throw new Error(cancerData.error || 'Cancer prediction failed');
+    if (!aiRes.ok)     throw new Error(aiData.error || 'Autoimmune prediction failed');
+
+    // ── Cancer result ──
+    const c     = cancerData.is_malignant ? 'danger' : 'safe';
+    const icon  = cancerData.is_malignant ? '⚠' : '✓';
+    const label = cancerData.is_malignant ? 'Malignancy Detected' : 'Benign — No Malignancy';
+
+    const bars = cancerData.probabilities.map(p => {
+      const bc  = p.is_malignant ? 'danger' : 'safe';
+      const uid = 'b_' + Math.random().toString(36).substr(2, 6);
+      return `<div class="prob-row">
+        <div class="prob-cls">${escHtml(p.class)}</div>
+        <div class="prob-track"><div class="prob-fill ${bc}" id="${uid}" data-w="${p.probability.toFixed(1)}%"></div></div>
+        <div class="prob-pct">${p.probability.toFixed(1)}%</div>
+      </div>`;
+    }).join('');
+
+    const inputPills = Object.entries(cancerData.input_params || cancerBody).map(([k, v]) =>
+      `<div class="stat-pill"><strong>${escHtml(k.replace(/_/g, ' '))}</strong> &nbsp;${v}</div>`
+    ).join('');
+
+    const cancerHTML = `
+      <div class="section-block-label">Cancer Assessment</div>
+      <div class="result-verdict ${c}">
+        <div class="vrd-top">
+          <div class="vrd-icon ${c}" style="font-size:20px;font-family:var(--mono);font-weight:500">${icon}</div>
+          <div>
+            <div class="vrd-status ${c}">${label}</div>
+            <div class="vrd-name">${escHtml(cancerData.class_name)}</div>
+            <div class="vrd-conf">Confidence — <strong>${cancerData.confidence.toFixed(1)}%</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="entity-block">
+        <div class="entity-head">Input Parameters</div>
+        <div class="stat-pills">${inputPills}</div>
+      </div>
+      <div class="prob-block">
+        <div class="prob-head">Classification Probabilities</div>
+        ${bars}
+      </div>
+      ${clinicalHTML(cancerData)}`;
+
+    // ── Autoimmune result ──
+    const ac    = aiData.prediction === 'Normal' ? 'safe' : 'warn';
+    const aicon = aiData.prediction === 'Normal' ? '✓' : '◎';
+    const alab  = aiData.prediction === 'Normal' ? 'No Autoimmune Condition' : 'Autoimmune Condition Detected';
+
+    const aiPills = Object.entries(aiData.found_params || aiBody).map(([k, v]) =>
+      `<div class="stat-pill"><strong>${escHtml(k.replace(/_/g, ' '))}</strong> &nbsp;${v}</div>`
+    ).join('');
+
+    const aiReasonLine = aiData.reason
+      ? `<div class="vrd-conf" style="margin-top:4px;font-size:12px;color:var(--text2)">${escHtml(aiData.reason)}</div>`
+      : '';
+
+    const aiHTML = `
+      <div class="section-block-label" style="margin-top:24px">Autoimmune Assessment</div>
+      <div class="result-verdict ${ac}">
+        <div class="vrd-top">
+          <div class="vrd-icon ${ac}" style="font-size:18px;font-family:var(--mono);font-weight:500">${aicon}</div>
+          <div>
+            <div class="vrd-status ${ac}">${alab}</div>
+            <div class="vrd-name">${escHtml(aiData.prediction)}</div>
+            <div class="vrd-conf">Confidence — <strong>${parseFloat(aiData.confidence).toFixed(1)}%</strong></div>
+            ${aiReasonLine}
+          </div>
+        </div>
+      </div>
+      <div class="entity-block">
+        <div class="entity-head">Input Markers</div>
+        <div class="stat-pills">${aiPills}</div>
+      </div>
+      ${clinicalHTML(aiData)}`;
+
+    // ── Render ──
+    const el = document.getElementById('cm-result');
+    el.innerHTML = cancerHTML + aiHTML;
+    el.classList.add('show');
+    animateBars(el);
+
+  } catch (e) {
+    setErr('cm-err', e.message);
+    document.getElementById('cm-placeholder').style.display = '';
+  } finally {
+    setBtnLoading('cm-btn', 'cm-spin', false);
+    setLoading('cm', false);
+  }
 }
 </script>
 </body>
